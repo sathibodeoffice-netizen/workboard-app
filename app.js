@@ -201,7 +201,7 @@ function updateUIForMode() {
 }
 
 // Handle Form Submission
-function handleTaskSubmit(e) {
+async function handleTaskSubmit(e) {
     e.preventDefault();
 
     const title = taskTitle.value.trim();
