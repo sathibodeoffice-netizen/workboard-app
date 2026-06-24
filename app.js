@@ -287,7 +287,7 @@ function renderTasks() {
                 ${currentMode === 'team' ? `<span>👤 ${task.assignee}</span>` : ''}
             </div>
             <div class="task-actions">
-                <button class="btn-delete" onclick="deleteTask('${task.id}')">Delete</button>
+                <button class="btn-delete" onclick="deleteTask('${task._id}')">Delete</button>
             </div>
         `;
         
