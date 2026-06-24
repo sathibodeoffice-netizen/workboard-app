@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Board - Home</title>
+    <link rel="stylesheet" href="home-style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-animation"></div>
+    <div class="glass-container">
+        <div class="logo-wrapper">
+            <img src="logo.png" alt="Work Board Logo" class="home-logo">
+            <h1>Work Board</h1>
+        </div>
+        <h2 class="hero-text">Manage your tasks efficiently.</h2>
+        <p class="sub-text">Organize your personal life and collaborate seamlessly with your department, all in one beautiful workspace.</p>
+        <button id="btnLoginSignup" class="btn-get-started">
+            Login / Sign Up
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </button>
+    </div>
+
+    <!-- Login/Sign Up Modal -->
+    <div id="authModal" class="modal hidden">
+        <div class="modal-content">
+            <button id="closeAuthModal" class="btn-close">&times;</button>
+            <h2 id="authTitle">Login to Work Board</h2>
+            <form id="authForm">
+                <div class="input-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required placeholder="Enter your email">
+                </div>
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required placeholder="Enter your password">
+                </div>
+                <button type="submit" class="btn-get-started btn-full">Continue</button>
+            </form>
+            <p class="auth-switch"><span id="authSwitchText">Don't have an account? </span><span id="toggleAuthMode" class="auth-link">Sign Up</span></p>
+        </div>
+    </div>
+
+    <script>
+        const btnLoginSignup = document.getElementById('btnLoginSignup');
+        const authModal = document.getElementById('authModal');
+        const closeAuthModal = document.getElementById('closeAuthModal');
+        const authForm = document.getElementById('authForm');
+        const toggleAuthMode = document.getElementById('toggleAuthMode');
+        const authSwitchText = document.getElementById('authSwitchText');
+        const authTitle = document.getElementById('authTitle');
+        let isLoginMode = true;
+
+        btnLoginSignup.addEventListener('click', () => {
+            authModal.classList.remove('hidden');
+        });
+
+        closeAuthModal.addEventListener('click', () => {
+            authModal.classList.add('hidden');
+        });
+
+        toggleAuthMode.addEventListener('click', () => {
+            isLoginMode = !isLoginMode;
+            if (isLoginMode) {
+                authTitle.textContent = 'Login to Work Board';
+                toggleAuthMode.textContent = 'Sign Up';
+                authSwitchText.textContent = "Don't have an account? ";
+            } else {
+                authTitle.textContent = 'Create an Account';
+                toggleAuthMode.textContent = 'Login';
+                authSwitchText.textContent = "Already have an account? ";
+            }
+        });
+
+        // Check if already logged in
+        if (sessionStorage.getItem('isAuthenticated')) {
+            window.location.href = 'dashboard.html';
+        }
+
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const submitBtn = authForm.querySelector('button[type="submit"]');
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Please wait...';
+
+            try {
+                const response = await fetch('/api/auth', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password, isLogin: isLoginMode })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    sessionStorage.setItem('isAuthenticated', 'true');
+                    sessionStorage.setItem('userEmail', email);
+                    sessionStorage.setItem('uid', data.uid);
+                    window.location.href = 'dashboard.html';
+                } else {
+                    alert('Error: ' + data.message);
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Continue';
+                }
+            } catch (error) {
+                alert('Network Error: ' + error.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Continue';
+            }
+        });
+    </script>
+</body>
+</html>

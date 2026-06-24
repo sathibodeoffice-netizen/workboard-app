@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Board</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <img src="logo.png" alt="Work Board Logo" class="logo-img">
+                <h2>Work Board</h2>
+            </div>
+            
+            <nav class="nav-menu">
+                <div class="nav-item active" id="navPersonal">
+                    <span style="font-size: 1.2rem;">👤</span> Personal Board
+                </div>
+                <div class="nav-item" id="navDepartment">
+                    <span style="font-size: 1.2rem;">👥</span> Department Board
+                </div>
+                <div class="nav-item" id="navSettings">
+                    <span style="font-size: 1.2rem;">⚙️</span> Settings
+                </div>
+            </nav>
+
+            <div class="filters">
+                <h3>Filters</h3>
+                <div class="filter-group">
+                    <label for="filterAssignee">Assignee</label>
+                    <select id="filterAssignee">
+                        <option value="all">All Assignees</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterPeriod">Time Period</label>
+                    <select id="filterPeriod">
+                        <option value="all">All Periods</option>
+                        <option value="Daily">Daily</option>
+                        <option value="Weekly">Weekly</option>
+                        <option value="Monthly">Monthly</option>
+                        <option value="Custom">Custom Date...</option>
+                    </select>
+                    <input type="date" id="filterDate" class="date-filter hidden" style="margin-top: 0.5rem;">
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div id="dashboardView">
+                <header class="main-header">
+                    <div class="header-title-row">
+                        <h1 id="boardTitle">Personal Board</h1>
+                        <button id="btnNewProject" class="btn-secondary hidden">New Project</button>
+                    </div>
+                    <p id="boardSubtitle">Manage your private tasks efficiently.</p>
+                </header>
+
+            <!-- Task Input Form -->
+            <section class="task-form-section">
+                <form id="taskForm">
+                    <input type="text" id="taskTitle" placeholder="What needs to be done?" required>
+                    
+                    <div class="form-row">
+                        <select id="taskPriority" required>
+                            <option value="" disabled selected>Priority</option>
+                            <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                        
+                        <select id="taskPeriodType" required>
+                            <option value="" disabled selected>Period</option>
+                            <option value="Daily">Daily</option>
+                            <option value="Weekly">Weekly</option>
+                            <option value="Monthly">Monthly</option>
+                            <option value="Custom">Custom Date...</option>
+                        </select>
+
+                        <input type="date" id="taskPeriod" class="date-input hidden">
+
+                        <select id="taskAssignee" class="hidden">
+                            <option value="" disabled selected>Assignee</option>
+                        </select>
+
+                        <button type="submit" class="btn-primary">Add Task</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Task List -->
+            <section class="task-board">
+                <div class="task-list" id="taskList">
+                    <!-- Tasks will be injected here via JS -->
+                </div>
+            </section>
+            </div>
+
+            <!-- Settings View -->
+            <div id="settingsView" class="hidden">
+                <header class="main-header">
+                    <h1>Settings</h1>
+                    <p style="color: var(--text-secondary);">Manage your account and preferences.</p>
+                </header>
+                
+                <section class="task-form-section" style="max-width: 500px;">
+                    <h3 style="margin-bottom: 1rem;">Account Actions</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Sign out of your Work Board account.</p>
+                    <button id="btnLogout" class="btn-secondary" style="color: var(--priority-high); border-color: var(--priority-high); width: 100%;">Logout</button>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- New Project Modal -->
+    <div id="projectModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>New Project</h2>
+            <p>Enter the Department Name for this board:</p>
+            <input type="text" id="deptNameInput" placeholder="e.g., Calling">
+            <div class="modal-actions">
+                <button id="btnCancelProject" class="btn-secondary">Cancel</button>
+                <button id="btnSaveProject" class="btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

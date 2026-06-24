@@ -1,0 +1,9 @@
+{
+  "name": "work-board",
+  "version": "1.0.0",
+  "description": "Work Board Application",
+  "main": "index.html",
+  "dependencies": {
+    "mongodb": "^6.3.0"
+  }
+}
