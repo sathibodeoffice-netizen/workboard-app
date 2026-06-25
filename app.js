@@ -368,6 +368,7 @@ async function handleTaskSubmit(e) {
         uid: uid,
         department: currentMode === 'team' ? customDepartmentName : '',
         status: 'todo',
+        subtasks: [],
         createdAt: new Date().toISOString()
     };
 
@@ -439,6 +440,53 @@ function dragLeave(event) {
     if (column) column.classList.remove('drag-over');
 }
 
+// Toggle Subtask Completion
+window.toggleSubtask = async function(taskId, subtaskIndex, isCompleted) {
+    const task = tasks[currentMode].find(t => t._id === taskId);
+    if (!task) return;
+    
+    task.subtasks[subtaskIndex].completed = isCompleted;
+    renderTasks(); // Optimistic update
+    
+    try {
+        await fetch(`/api/tasks?id=${taskId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subtasks: task.subtasks })
+        });
+        fetchTasks();
+    } catch (e) {
+        console.error("Error toggling subtask: ", e);
+    }
+}
+
+// Add Subtask
+window.addSubtask = async function(event, taskId) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        const text = event.target.value.trim();
+        if (!text) return;
+        
+        const task = tasks[currentMode].find(t => t._id === taskId);
+        if (!task) return;
+        
+        if (!task.subtasks) task.subtasks = [];
+        task.subtasks.push({ text: text, completed: false });
+        renderTasks(); // Optimistic update
+        
+        try {
+            await fetch(`/api/tasks?id=${taskId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ subtasks: task.subtasks })
+            });
+            fetchTasks();
+        } catch (e) {
+            console.error("Error adding subtask: ", e);
+        }
+    }
+}
+
 // Render Tasks to DOM
 function renderTasks() {
     listTodo.innerHTML = '';
@@ -469,12 +517,29 @@ function renderTasks() {
         
         const descriptionHtml = task.description ? `<p class="task-description">${task.description.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')}</p>` : '';
         
+        const subtasks = task.subtasks || [];
+        let subtasksHtml = `<div class="subtasks-container">`;
+        subtasks.forEach((st, index) => {
+            const isChecked = st.completed ? 'checked' : '';
+            const completedClass = st.completed ? 'completed' : '';
+            subtasksHtml += `
+                <div class="subtask-item ${completedClass}">
+                    <input type="checkbox" ${isChecked} onchange="toggleSubtask('${task._id}', ${index}, this.checked)">
+                    <span>${st.text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>
+                </div>
+            `;
+        });
+        subtasksHtml += `
+            <input type="text" class="subtask-input" placeholder="+ Add subtask..." onkeypress="addSubtask(event, '${task._id}')">
+        </div>`;
+        
         card.innerHTML = `
             <div class="task-header" style="display: flex; align-items: center; gap: 10px;">
                 <h3 class="task-title" style="margin: 0; flex: 1;">${task.title}</h3>
                 <span class="badge ${task.priority.toLowerCase()}">${task.priority}</span>
             </div>
             ${descriptionHtml}
+            ${subtasksHtml}
             <div class="task-meta">
                 <span>🗓️ ${task.period}</span>
                 ${currentMode === 'team' ? `<span>👤 ${task.assignee}</span>` : ''}

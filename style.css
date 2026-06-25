@@ -459,3 +459,49 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     justify-content: flex-end;
     gap: 1rem;
 }
+
+/* Subtasks / Checklist */
+.subtasks-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.2rem;
+    border-top: 1px dashed var(--border-color);
+    padding-top: 0.8rem;
+}
+
+.subtask-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    word-break: break-word;
+}
+
+.subtask-item input[type="checkbox"] {
+    accent-color: var(--accent);
+    transform: scale(1.1);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.subtask-item.completed span {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+.subtask-input {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    outline: none;
+    padding: 0.3rem 0;
+    width: 100%;
+}
+
+.subtask-input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
