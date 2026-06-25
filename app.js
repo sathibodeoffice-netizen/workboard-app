@@ -6,6 +6,16 @@ if (!sessionStorage.getItem('isAuthenticated') || !uid) {
 
 // State Management
 let currentMode = 'personal'; // 'personal' or 'team'
+
+// Check URL for department param first
+const urlParams = new URLSearchParams(window.location.search);
+const deptFromUrl = urlParams.get('dept');
+
+if (deptFromUrl) {
+    localStorage.setItem('customDepartmentName', deptFromUrl);
+    currentMode = 'team';
+}
+
 let customDepartmentName = localStorage.getItem('customDepartmentName') || 'Department';
 let assignees = JSON.parse(localStorage.getItem('assignees')) || [];
 
@@ -55,10 +65,18 @@ function init() {
     updateUIForMode();
     setupEventListeners();
     fetchTasks(); // Initial fetch
+    
+    // Set active nav if we started in team mode due to URL
+    if (currentMode === 'team') {
+        navDepartment.classList.add('active');
+        navPersonal.classList.remove('active');
+    }
 }
 
 // We use a simple polling mechanism for "real-time" feel since we aren't using websockets
 let pollingInterval = null;
+
+let previousTasksState = ''; // Store previous state to prevent jumpy UI
 
 async function fetchTasks() {
     try {
@@ -70,7 +88,24 @@ async function fetchTasks() {
         const resTeam = await fetch(`/api/tasks?department=${encodeURIComponent(customDepartmentName)}&mode=team`);
         tasks.team = await resTeam.json();
 
-        renderTasks();
+        // Extract dynamic assignees from team tasks
+        const uniqueAssignees = new Set(assignees);
+        tasks.team.forEach(task => {
+            if (task.assignee) uniqueAssignees.add(task.assignee);
+        });
+        const updatedAssignees = Array.from(uniqueAssignees);
+        if (updatedAssignees.length !== assignees.length) {
+            assignees = updatedAssignees;
+            localStorage.setItem('assignees', JSON.stringify(assignees));
+            renderAssigneeDropdowns();
+        }
+
+        // Smart UI Re-rendering check
+        const currentTasksState = JSON.stringify(tasks);
+        if (currentTasksState !== previousTasksState) {
+            previousTasksState = currentTasksState;
+            renderTasks();
+        }
     } catch (e) {
         console.error("Error fetching tasks:", e);
     }
@@ -90,6 +125,12 @@ function setupEventListeners() {
         navSettings.classList.remove('active');
         dashboardView.classList.remove('hidden');
         settingsView.classList.add('hidden');
+        
+        // Remove dept from URL
+        const url = new URL(window.location);
+        url.searchParams.delete('dept');
+        window.history.pushState({}, '', url);
+
         updateUIForMode();
         renderTasks();
     });
@@ -101,6 +142,12 @@ function setupEventListeners() {
         navSettings.classList.remove('active');
         dashboardView.classList.remove('hidden');
         settingsView.classList.add('hidden');
+        
+        // Add dept to URL
+        const url = new URL(window.location);
+        url.searchParams.set('dept', customDepartmentName);
+        window.history.pushState({}, '', url);
+
         updateUIForMode();
         renderTasks();
     });
@@ -169,6 +216,12 @@ function setupEventListeners() {
             customDepartmentName = newName;
             localStorage.setItem('customDepartmentName', customDepartmentName);
             boardTitle.textContent = `${customDepartmentName} To Do Board`;
+            
+            // Update URL with new dept
+            const url = new URL(window.location);
+            url.searchParams.set('dept', customDepartmentName);
+            window.history.pushState({}, '', url);
+
             fetchTasks();
         }
         projectModal.classList.add('hidden');
