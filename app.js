@@ -71,8 +71,16 @@ const btnLogout = document.getElementById('btnLogout');
 
 // Initialize App
 function init() {
-    if ("Notification" in window) {
-        Notification.requestPermission();
+    try {
+        if ("Notification" in window) {
+            // Some browsers throw errors if not triggered by user gesture or in insecure contexts
+            const promise = Notification.requestPermission();
+            if (promise) {
+                promise.catch(e => console.log("Notification permission dismissed:", e));
+            }
+        }
+    } catch (e) {
+        console.warn("Notification API not fully supported or blocked:", e);
     }
     
     renderAssigneeDropdowns();
@@ -134,7 +142,11 @@ if (!pollingInterval) {
 setInterval(checkDeadlines, 60000); // Check every minute
 
 function checkDeadlines() {
-    if (Notification.permission !== "granted") return;
+    try {
+        if (!("Notification" in window) || Notification.permission !== "granted") return;
+    } catch (e) {
+        return; // Fail silently if Notification throws
+    }
     
     let notifiedTasks = JSON.parse(localStorage.getItem('notifiedTasks')) || {};
     const now = new Date().getTime();
