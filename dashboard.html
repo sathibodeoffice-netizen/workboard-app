@@ -161,9 +161,18 @@
             <h2>New Project</h2>
             <p>Enter the Department Name for this board:</p>
             <input type="text" id="deptNameInput" placeholder="e.g., Calling">
-            <div class="modal-actions">
+            
+            <p style="margin-top: 1rem;">Choose a Template:</p>
+            <select id="deptTemplateSelect" style="width: 100%; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); margin-top: 0.5rem; font-family: inherit;">
+                <option value="blank">📝 Blank Board</option>
+                <option value="software">🚀 Software Development</option>
+                <option value="marketing">📢 Marketing Campaign</option>
+                <option value="hr">👋 HR Onboarding</option>
+            </select>
+
+            <div class="modal-actions" style="margin-top: 1.5rem;">
                 <button id="btnCancelProject" class="btn-secondary">Cancel</button>
-                <button id="btnSaveProject" class="btn-primary">Save</button>
+                <button id="btnSaveProject" class="btn-primary">Create Project</button>
             </div>
         </div>
     </div>

@@ -66,6 +66,7 @@ const btnEditProject = document.getElementById('btnEditProject');
 const btnDeleteProject = document.getElementById('btnDeleteProject');
 const projectModal = document.getElementById('projectModal');
 const deptNameInput = document.getElementById('deptNameInput');
+const deptTemplateSelect = document.getElementById('deptTemplateSelect');
 const btnCancelProject = document.getElementById('btnCancelProject');
 const btnSaveProject = document.getElementById('btnSaveProject');
 const btnLogout = document.getElementById('btnLogout');
@@ -297,6 +298,7 @@ function setupEventListeners() {
 
     btnNewProject.addEventListener('click', () => {
         deptNameInput.value = '';
+        if(deptTemplateSelect) deptTemplateSelect.value = 'blank';
         projectModal.classList.remove('hidden');
     });
 
@@ -304,8 +306,10 @@ function setupEventListeners() {
         projectModal.classList.add('hidden');
     });
 
-    btnSaveProject.addEventListener('click', () => {
+    btnSaveProject.addEventListener('click', async () => {
         const newName = deptNameInput.value.trim();
+        const template = deptTemplateSelect ? deptTemplateSelect.value : 'blank';
+        
         if (newName) {
             customDepartmentName = newName;
             localStorage.setItem('customDepartmentName', customDepartmentName);
@@ -316,9 +320,16 @@ function setupEventListeners() {
             url.searchParams.set('dept', customDepartmentName);
             window.history.pushState({}, '', url);
 
+            projectModal.classList.add('hidden');
+            
+            if (template !== 'blank') {
+                await createTemplateTasks(newName, template);
+            }
+            
             fetchTasks();
+        } else {
+            alert("Please enter a department name.");
         }
-        projectModal.classList.add('hidden');
     });
 
     btnShareLink.addEventListener('click', () => {
@@ -471,6 +482,61 @@ function resetAttachmentModal() {
     btnSaveAttachment.textContent = 'Add Attachment';
     btnSaveAttachment.disabled = false;
     attachmentModal.classList.add('hidden');
+}
+
+// Template Helpers
+async function createTemplateTasks(deptName, templateId) {
+    let templateTasks = [];
+    
+    if (templateId === 'software') {
+        templateTasks = [
+            { title: "Set up Code Repository", description: "Initialize Git and create branch structure.", status: "done", priority: "High", color: "#3b82f6" },
+            { title: "Design Database Schema", description: "Plan tables for users and tasks.", status: "in_progress", priority: "High", color: "#8b5cf6", subtasks: [{text: "ER Diagram", completed: true}, {text: "SQL Scripts", completed: false}] },
+            { title: "Build Authentication API", description: "Login, Signup and JWT generation.", status: "todo", priority: "Medium", color: "#10b981" },
+            { title: "Frontend Dashboard Integration", description: "Connect React/UI to API.", status: "todo", priority: "Low", color: "#f59e0b" }
+        ];
+    } else if (templateId === 'marketing') {
+        templateTasks = [
+            { title: "Market Research", description: "Analyze competitor ad strategies.", status: "done", priority: "High", color: "#ec4899" },
+            { title: "Create Ad Copy", description: "Write 3 variations for Facebook Ads.", status: "in_progress", priority: "Medium", color: "#f43f5e" },
+            { title: "Design Social Graphics", description: "Banner and square formats.", status: "todo", priority: "High", color: "#8b5cf6" },
+            { title: "Launch Campaign", description: "Set budget and publish.", status: "todo", priority: "High", color: "#3b82f6" }
+        ];
+    } else if (templateId === 'hr') {
+        templateTasks = [
+            { title: "Send Welcome Email", description: "Include instructions for Day 1.", status: "done", priority: "High", color: "#10b981" },
+            { title: "Setup IT Accounts", description: "Email, Slack, and Jira access.", status: "in_progress", priority: "High", color: "#3b82f6" },
+            { title: "First Day Office Tour", description: "Show desks, kitchen, and meeting rooms.", status: "todo", priority: "Medium", color: "#f59e0b" },
+            { title: "Manager 1-on-1 Meeting", description: "Set expectations.", status: "todo", priority: "Low", color: "#8b5cf6" }
+        ];
+    }
+    
+    for (let t of templateTasks) {
+        const newTask = {
+            title: t.title,
+            description: t.description,
+            color: t.color,
+            deadline: "",
+            priority: t.priority,
+            period: "Weekly",
+            assignee: "Me",
+            mode: "team",
+            uid: uid,
+            department: deptName,
+            status: t.status,
+            subtasks: t.subtasks || [],
+            createdAt: new Date().toISOString()
+        };
+        try {
+            await fetch('/api/tasks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newTask)
+            });
+        } catch(e) {
+            console.error("Error creating template task", e);
+        }
+    }
 }
 
 // Update UI elements based on current mode
