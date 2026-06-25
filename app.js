@@ -218,7 +218,7 @@ function setupEventListeners() {
         if (newName) {
             customDepartmentName = newName;
             localStorage.setItem('customDepartmentName', customDepartmentName);
-            boardTitle.textContent = `${customDepartmentName} To Do Board`;
+            boardTitle.textContent = `${customDepartmentName} Board`;
             
             // Update URL with new dept
             const url = new URL(window.location);
@@ -253,7 +253,7 @@ function setupEventListeners() {
                 });
                 customDepartmentName = updatedName;
                 localStorage.setItem('customDepartmentName', customDepartmentName);
-                boardTitle.textContent = `${customDepartmentName} To Do Board`;
+                boardTitle.textContent = `${customDepartmentName} Board`;
                 
                 const url = new URL(window.location);
                 url.searchParams.set('dept', customDepartmentName);
@@ -301,7 +301,7 @@ function setupEventListeners() {
 // Update UI elements based on current mode
 function updateUIForMode() {
     if (currentMode === 'team') {
-        boardTitle.textContent = `${customDepartmentName} To Do Board`;
+        boardTitle.textContent = `${customDepartmentName} Board`;
         boardSubtitle.textContent = 'Shared tasks for the department.';
         taskAssigneeInput.classList.remove('hidden');
         taskAssigneeInput.required = true;
