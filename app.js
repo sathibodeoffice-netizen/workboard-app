@@ -53,6 +53,7 @@ const filterPeriod = document.getElementById('filterPeriod');
 const filterDate = document.getElementById('filterDate');
 
 const btnNewProject = document.getElementById('btnNewProject');
+const btnShareLink = document.getElementById('btnShareLink');
 const projectModal = document.getElementById('projectModal');
 const deptNameInput = document.getElementById('deptNameInput');
 const btnCancelProject = document.getElementById('btnCancelProject');
@@ -227,6 +228,16 @@ function setupEventListeners() {
         projectModal.classList.add('hidden');
     });
 
+    btnShareLink.addEventListener('click', () => {
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            const originalText = btnShareLink.textContent;
+            btnShareLink.textContent = "✅ Copied!";
+            setTimeout(() => {
+                btnShareLink.textContent = originalText;
+            }, 2000);
+        });
+    });
+
     btnLogout.addEventListener('click', () => {
         sessionStorage.clear();
         window.location.href = 'index.html';
@@ -242,6 +253,7 @@ function updateUIForMode() {
         taskAssigneeInput.required = true;
         filterAssigneeContainer.classList.remove('hidden');
         btnNewProject.classList.remove('hidden');
+        btnShareLink.classList.remove('hidden');
     } else {
         boardTitle.textContent = 'Personal Board';
         boardSubtitle.textContent = 'Manage your private tasks efficiently.';
@@ -250,6 +262,7 @@ function updateUIForMode() {
         filterAssigneeContainer.classList.add('hidden');
         filterAssignee.value = 'all'; // Reset assignee filter
         btnNewProject.classList.add('hidden');
+        btnShareLink.classList.add('hidden');
     }
 }
 
