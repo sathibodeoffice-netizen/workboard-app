@@ -41,20 +41,32 @@ export default async function handler(req, res) {
         }
     } else if (req.method === 'DELETE') {
         try {
-            const { id } = req.query;
-            await tasksCollection.deleteOne({ _id: new ObjectId(id) });
+            const { id, department } = req.query;
+            if (department) {
+                await tasksCollection.deleteMany({ department: department });
+            } else {
+                await tasksCollection.deleteOne({ _id: new ObjectId(id) });
+            }
             res.status(200).json({ success: true });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
     } else if (req.method === 'PATCH') {
         try {
-            const { id } = req.query;
-            const updates = req.body;
-            await tasksCollection.updateOne(
-                { _id: new ObjectId(id) },
-                { $set: updates }
-            );
+            const { id, department } = req.query;
+            if (department) {
+                const { newDepartment } = req.body;
+                await tasksCollection.updateMany(
+                    { department: department },
+                    { $set: { department: newDepartment } }
+                );
+            } else {
+                const updates = req.body;
+                await tasksCollection.updateOne(
+                    { _id: new ObjectId(id) },
+                    { $set: updates }
+                );
+            }
             res.status(200).json({ success: true });
         } catch (error) {
             res.status(500).json({ error: error.message });

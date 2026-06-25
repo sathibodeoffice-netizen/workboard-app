@@ -54,6 +54,8 @@ const filterDate = document.getElementById('filterDate');
 
 const btnNewProject = document.getElementById('btnNewProject');
 const btnShareLink = document.getElementById('btnShareLink');
+const btnEditProject = document.getElementById('btnEditProject');
+const btnDeleteProject = document.getElementById('btnDeleteProject');
 const projectModal = document.getElementById('projectModal');
 const deptNameInput = document.getElementById('deptNameInput');
 const btnCancelProject = document.getElementById('btnCancelProject');
@@ -238,6 +240,58 @@ function setupEventListeners() {
         });
     });
 
+    btnEditProject.addEventListener('click', async () => {
+        const newName = prompt("Enter new name for this department:", customDepartmentName);
+        if (newName && newName.trim() !== '' && newName.trim() !== customDepartmentName) {
+            const oldName = customDepartmentName;
+            const updatedName = newName.trim();
+            try {
+                await fetch(`/api/tasks?department=${encodeURIComponent(oldName)}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ newDepartment: updatedName })
+                });
+                customDepartmentName = updatedName;
+                localStorage.setItem('customDepartmentName', customDepartmentName);
+                boardTitle.textContent = `${customDepartmentName} To Do Board`;
+                
+                const url = new URL(window.location);
+                url.searchParams.set('dept', customDepartmentName);
+                window.history.pushState({}, '', url);
+
+                fetchTasks();
+            } catch (e) {
+                console.error("Error editing department: ", e);
+            }
+        }
+    });
+
+    btnDeleteProject.addEventListener('click', async () => {
+        if (confirm(`Are you sure you want to delete the department "${customDepartmentName}" and ALL its tasks?`)) {
+            try {
+                await fetch(`/api/tasks?department=${encodeURIComponent(customDepartmentName)}`, {
+                    method: 'DELETE'
+                });
+                
+                currentMode = 'personal';
+                navPersonal.classList.add('active');
+                navDepartment.classList.remove('active');
+                
+                const url = new URL(window.location);
+                url.searchParams.delete('dept');
+                window.history.pushState({}, '', url);
+                
+                localStorage.removeItem('customDepartmentName');
+                customDepartmentName = 'Department';
+
+                updateUIForMode();
+                fetchTasks();
+            } catch (e) {
+                console.error("Error deleting department: ", e);
+            }
+        }
+    });
+
     btnLogout.addEventListener('click', () => {
         sessionStorage.clear();
         window.location.href = 'index.html';
@@ -254,6 +308,8 @@ function updateUIForMode() {
         filterAssigneeContainer.classList.remove('hidden');
         btnNewProject.classList.remove('hidden');
         btnShareLink.classList.remove('hidden');
+        btnEditProject.classList.remove('hidden');
+        btnDeleteProject.classList.remove('hidden');
     } else {
         boardTitle.textContent = 'Personal Board';
         boardSubtitle.textContent = 'Manage your private tasks efficiently.';
@@ -263,6 +319,8 @@ function updateUIForMode() {
         filterAssignee.value = 'all'; // Reset assignee filter
         btnNewProject.classList.add('hidden');
         btnShareLink.classList.add('hidden');
+        btnEditProject.classList.add('hidden');
+        btnDeleteProject.classList.add('hidden');
     }
 }
 
