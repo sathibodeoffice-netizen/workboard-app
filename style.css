@@ -552,3 +552,74 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .task-card.overdue {
     border-left: 4px solid #ef4444;
 }
+
+/* Attachments */
+.attachments-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.attachment-item {
+    position: relative;
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 100px;
+    max-height: 100px;
+}
+
+.attachment-item img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.attachment-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: var(--text-primary);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: background 0.2s;
+    word-break: break-all;
+}
+
+.attachment-link:hover {
+    background: var(--bg-secondary);
+}
+
+.attachment-icon {
+    font-size: 1.1rem;
+}
+
+.btn-attachment {
+    background: transparent;
+    border: 1px dashed var(--border-color);
+    color: var(--text-secondary);
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    margin-top: 8px;
+    width: 100%;
+    transition: all 0.2s;
+}
+
+.btn-attachment:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
+}

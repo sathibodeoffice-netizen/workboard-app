@@ -146,6 +146,31 @@
         </div>
     </div>
 
+    <!-- Attachment Modal -->
+    <div id="attachmentModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Add Attachment</h2>
+            <p>Upload a small image or paste an external link (Google Drive, GitHub, Slack, etc.).</p>
+            
+            <div style="margin-bottom: 1rem; margin-top: 1rem;">
+                <label for="attachmentLink" style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">External Link URL</label>
+                <input type="url" id="attachmentLink" placeholder="https://drive.google.com/..." style="width: 100%; box-sizing: border-box;">
+            </div>
+            
+            <div style="text-align: center; margin: 1rem 0; color: var(--text-secondary);">OR</div>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <label for="attachmentFile" style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">Upload Image (Max 1MB)</label>
+                <input type="file" id="attachmentFile" accept="image/*" style="width: 100%; color: var(--text-primary);">
+            </div>
+
+            <div class="modal-actions">
+                <button id="btnCancelAttachment" class="btn-secondary">Cancel</button>
+                <button id="btnSaveAttachment" class="btn-primary">Add Attachment</button>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>

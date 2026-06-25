@@ -69,6 +69,14 @@ const btnCancelProject = document.getElementById('btnCancelProject');
 const btnSaveProject = document.getElementById('btnSaveProject');
 const btnLogout = document.getElementById('btnLogout');
 
+// Attachment Elements
+const attachmentModal = document.getElementById('attachmentModal');
+const attachmentLink = document.getElementById('attachmentLink');
+const attachmentFile = document.getElementById('attachmentFile');
+const btnCancelAttachment = document.getElementById('btnCancelAttachment');
+const btnSaveAttachment = document.getElementById('btnSaveAttachment');
+let targetTaskIdForAttachment = null;
+
 // Initialize App
 function init() {
     try {
@@ -370,6 +378,82 @@ function setupEventListeners() {
         sessionStorage.clear();
         window.location.href = 'index.html';
     });
+
+    // Attachment Event Listeners
+    btnCancelAttachment.addEventListener('click', () => {
+        attachmentModal.classList.add('hidden');
+    });
+
+    btnSaveAttachment.addEventListener('click', async () => {
+        if (!targetTaskIdForAttachment) return;
+        
+        const task = tasks[currentMode].find(t => t._id === targetTaskIdForAttachment);
+        if (!task) return;
+        if (!task.attachments) task.attachments = [];
+
+        const linkVal = attachmentLink.value.trim();
+        const file = attachmentFile.files[0];
+
+        btnSaveAttachment.textContent = 'Uploading...';
+        btnSaveAttachment.disabled = true;
+
+        try {
+            if (file) {
+                if (file.size > 1024 * 1024) { // 1MB limit
+                    alert("Image must be smaller than 1MB.");
+                    resetAttachmentModal();
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const base64Data = e.target.result;
+                    task.attachments.push({ type: 'image', name: file.name, data: base64Data });
+                    await updateTaskAttachments(task);
+                };
+                reader.readAsDataURL(file);
+            } else if (linkVal) {
+                task.attachments.push({ type: 'link', url: linkVal });
+                await updateTaskAttachments(task);
+            } else {
+                alert("Please provide a link or an image.");
+                resetAttachmentModal();
+            }
+        } catch (e) {
+            console.error(e);
+            resetAttachmentModal();
+        }
+    });
+}
+
+// Attachment Helpers
+window.openAttachmentModal = function(taskId) {
+    targetTaskIdForAttachment = taskId;
+    attachmentLink.value = '';
+    attachmentFile.value = '';
+    btnSaveAttachment.textContent = 'Add Attachment';
+    btnSaveAttachment.disabled = false;
+    attachmentModal.classList.remove('hidden');
+}
+
+async function updateTaskAttachments(task) {
+    renderTasks(); // Optimistic update
+    try {
+        await fetch(`/api/tasks?id=${task._id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ attachments: task.attachments })
+        });
+        fetchTasks();
+    } catch (e) {
+        console.error("Error saving attachment: ", e);
+    }
+    resetAttachmentModal();
+}
+
+function resetAttachmentModal() {
+    btnSaveAttachment.textContent = 'Add Attachment';
+    btnSaveAttachment.disabled = false;
+    attachmentModal.classList.add('hidden');
 }
 
 // Update UI elements based on current mode
@@ -603,6 +687,39 @@ function renderTasks() {
         subtasksHtml += `
             <input type="text" class="subtask-input" placeholder="+ Add subtask..." onkeypress="addSubtask(event, '${task._id}')">
         </div>`;
+
+        const attachments = task.attachments || [];
+        let attachmentsHtml = '';
+        if (attachments.length > 0) {
+            attachmentsHtml += '<div class="attachments-container">';
+            attachments.forEach(att => {
+                if (att.type === 'image') {
+                    attachmentsHtml += `
+                        <div class="attachment-item">
+                            <a href="${att.data}" target="_blank" title="${att.name}">
+                                <img src="${att.data}" alt="${att.name}">
+                            </a>
+                        </div>
+                    `;
+                } else if (att.type === 'link') {
+                    let icon = '🔗';
+                    let bgColor = 'var(--bg-primary)';
+                    if (att.url.includes('drive.google.com')) { icon = '📁'; bgColor = '#4285F415'; }
+                    else if (att.url.includes('github.com')) { icon = '🐙'; bgColor = '#24292e15'; }
+                    else if (att.url.includes('slack.com')) { icon = '💬'; bgColor = '#4A154B15'; }
+                    
+                    let shortUrl = att.url;
+                    try { shortUrl = new URL(att.url).hostname.replace('www.', ''); } catch(e){}
+                    
+                    attachmentsHtml += `
+                        <a href="${att.url}" target="_blank" class="attachment-link" style="background: ${bgColor}" title="${att.url}">
+                            <span class="attachment-icon">${icon}</span> ${shortUrl}
+                        </a>
+                    `;
+                }
+            });
+            attachmentsHtml += '</div>';
+        }
         
         card.innerHTML = `
             <div class="task-header" style="display: flex; align-items: center; gap: 10px;">
@@ -612,6 +729,8 @@ function renderTasks() {
             ${deadlineHtml}
             ${descriptionHtml}
             ${subtasksHtml}
+            ${attachmentsHtml}
+            <button class="btn-attachment" onclick="openAttachmentModal('${task._id}')">📎 Add Attachment</button>
             <div class="task-meta">
                 <span>🗓️ ${task.period}</span>
                 ${currentMode === 'team' ? `<span>👤 ${task.assignee}</span>` : ''}
