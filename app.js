@@ -621,7 +621,6 @@ function renderTasks() {
             </div>
         `;
         
-        const status = task.status || 'todo';
         if (status === 'todo') {
             listTodo.appendChild(card);
             cTodo++;
