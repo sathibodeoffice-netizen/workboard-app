@@ -73,6 +73,7 @@
                     <textarea id="taskDescription" placeholder="Add a detailed description here..." rows="2"></textarea>
                     
                     <div class="form-row">
+                        <input type="color" id="taskColor" value="#3b82f6" title="Choose Task Color" class="color-picker">
                         <input type="text" id="taskDeadline" placeholder="Deadline (optional)" onfocus="(this.type='datetime-local')" onblur="(this.type= this.value ? 'datetime-local' : 'text')">
                         <select id="taskPriority" required>
                             <option value="" disabled selected>Priority</option>

@@ -44,6 +44,7 @@ const filterAssigneeContainer = document.getElementById('filterAssignee').parent
 const taskForm = document.getElementById('taskForm');
 const taskTitle = document.getElementById('taskTitle');
 const taskDescription = document.getElementById('taskDescription');
+const taskColor = document.getElementById('taskColor');
 const taskDeadline = document.getElementById('taskDeadline');
 const taskPriority = document.getElementById('taskPriority');
 const taskPeriodType = document.getElementById('taskPeriodType');
@@ -488,6 +489,7 @@ async function handleTaskSubmit(e) {
 
     const title = taskTitle.value.trim();
     const description = taskDescription.value.trim();
+    const color = taskColor.value;
     const deadline = taskDeadline.value;
     const priority = taskPriority.value;
     const periodType = taskPeriodType.value;
@@ -502,6 +504,7 @@ async function handleTaskSubmit(e) {
     const newTask = {
         title,
         description,
+        color,
         deadline,
         priority,
         period,
@@ -670,6 +673,11 @@ function renderTasks() {
         card.draggable = true;
         card.ondragstart = drag;
         
+        // Apply task color
+        if (task.color) {
+            card.style.borderTop = `4px solid ${task.color}`;
+        }
+        
         const descriptionHtml = task.description ? `<p class="task-description">${task.description.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')}</p>` : '';
         
         const subtasks = task.subtasks || [];
@@ -723,6 +731,7 @@ function renderTasks() {
         
         card.innerHTML = `
             <div class="task-header" style="display: flex; align-items: center; gap: 10px;">
+                ${task.color ? `<span style="width:12px;height:12px;border-radius:50%;background-color:${task.color};flex-shrink:0;"></span>` : ''}
                 <h3 class="task-title" style="margin: 0; flex: 1;">${task.title}</h3>
                 <span class="badge ${task.priority.toLowerCase()}">${task.priority}</span>
             </div>
