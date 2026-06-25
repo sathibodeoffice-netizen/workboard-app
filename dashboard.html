@@ -125,6 +125,27 @@
                     <p style="color: var(--text-secondary);">Manage your account and preferences.</p>
                 </header>
                 
+                <section class="task-form-section" style="max-width: 500px; margin-bottom: 2rem;">
+                    <h3 style="margin-bottom: 1rem;">🤖 Butler Automations</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">Automate repetitive actions when you move tasks to the Done column.</p>
+                    
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; padding: 10px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px;">
+                        <div>
+                            <strong>Auto-Delete on Done</strong>
+                            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">Automatically delete tasks dropped in Done.</p>
+                        </div>
+                        <input type="checkbox" id="butlerAutoDelete" style="width: 20px; height: 20px; cursor: pointer;">
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px;">
+                        <div>
+                            <strong>Auto-Update Date on Done</strong>
+                            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">Change the deadline to current time.</p>
+                        </div>
+                        <input type="checkbox" id="butlerAutoDate" style="width: 20px; height: 20px; cursor: pointer;">
+                    </div>
+                </section>
+
                 <section class="task-form-section" style="max-width: 500px;">
                     <h3 style="margin-bottom: 1rem;">Account Actions</h3>
                     <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Sign out of your Work Board account.</p>

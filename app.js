@@ -78,6 +78,10 @@ const btnCancelAttachment = document.getElementById('btnCancelAttachment');
 const btnSaveAttachment = document.getElementById('btnSaveAttachment');
 let targetTaskIdForAttachment = null;
 
+// Butler Elements
+const butlerAutoDelete = document.getElementById('butlerAutoDelete');
+const butlerAutoDate = document.getElementById('butlerAutoDate');
+
 // Initialize App
 function init() {
     try {
@@ -96,6 +100,10 @@ function init() {
     updateUIForMode();
     setupEventListeners();
     fetchTasks(); // Initial fetch
+    
+    // Load Butler States
+    butlerAutoDelete.checked = localStorage.getItem('butlerAutoDelete') === 'true';
+    butlerAutoDate.checked = localStorage.getItem('butlerAutoDate') === 'true';
     
     // Set active nav if we started in team mode due to URL
     if (currentMode === 'team') {
@@ -380,6 +388,14 @@ function setupEventListeners() {
         window.location.href = 'index.html';
     });
 
+    // Butler Event Listeners
+    butlerAutoDelete.addEventListener('change', (e) => {
+        localStorage.setItem('butlerAutoDelete', e.target.checked);
+    });
+    butlerAutoDate.addEventListener('change', (e) => {
+        localStorage.setItem('butlerAutoDate', e.target.checked);
+    });
+
     // Attachment Event Listeners
     btnCancelAttachment.addEventListener('click', () => {
         attachmentModal.classList.add('hidden');
@@ -568,6 +584,30 @@ function drop(event, newStatus) {
     const taskIndex = tasks[currentMode].findIndex(t => t._id === taskId);
     if (taskIndex !== -1) {
         tasks[currentMode][taskIndex].status = newStatus;
+        
+        // 🤖 Butler Automations
+        if (newStatus === 'done') {
+            if (butlerAutoDelete.checked) {
+                deleteTask(taskId);
+                return; // Let deleteTask handle the refresh
+            } else if (butlerAutoDate.checked) {
+                const nowTime = new Date();
+                nowTime.setMinutes(nowTime.getMinutes() - nowTime.getTimezoneOffset());
+                const nowStr = nowTime.toISOString().slice(0, 16);
+                
+                tasks[currentMode][taskIndex].deadline = nowStr;
+                
+                fetch(`/api/tasks?id=${taskId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus, deadline: nowStr })
+                }).then(() => fetchTasks()).catch(e => console.error(e));
+                
+                renderTasks();
+                return;
+            }
+        }
+        
         renderTasks();
     }
 
