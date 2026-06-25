@@ -317,6 +317,20 @@ window.deleteTask = async function(taskId) {
     }
 }
 
+// Toggle Task Completion
+window.toggleTaskCompletion = async function(taskId, isCompleted) {
+    try {
+        await fetch(`/api/tasks?id=${taskId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ completed: isCompleted })
+        });
+        fetchTasks(); // Refresh immediately
+    } catch (e) {
+        console.error("Error updating document: ", e);
+    }
+}
+
 // Render Tasks to DOM
 function renderTasks() {
     taskList.innerHTML = '';
@@ -343,9 +357,13 @@ function renderTasks() {
         const card = document.createElement('div');
         card.className = 'task-card';
         
+        const isCompleted = task.completed ? 'checked' : '';
+        const titleStyle = task.completed ? 'text-decoration: line-through; color: var(--text-secondary);' : '';
+        
         card.innerHTML = `
-            <div class="task-header">
-                <h3 class="task-title">${task.title}</h3>
+            <div class="task-header" style="display: flex; align-items: center; gap: 10px;">
+                <input type="checkbox" ${isCompleted} onchange="toggleTaskCompletion('${task._id}', this.checked)" style="transform: scale(1.5); cursor: pointer; accent-color: var(--accent);">
+                <h3 class="task-title" style="${titleStyle} flex: 1; margin: 0;">${task.title}</h3>
                 <span class="badge ${task.priority.toLowerCase()}">${task.priority}</span>
             </div>
             <div class="task-meta">
