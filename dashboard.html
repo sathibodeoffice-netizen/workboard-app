@@ -98,10 +98,19 @@
                 </form>
             </section>
 
-            <!-- Task List -->
-            <section class="task-board">
-                <div class="task-list" id="taskList">
-                    <!-- Tasks will be injected here via JS -->
+            <!-- Kanban Board -->
+            <section class="kanban-board">
+                <div class="kanban-column" id="col-todo" data-status="todo">
+                    <h2 class="column-title">To-Do <span class="task-count" id="count-todo">0</span></h2>
+                    <div class="kanban-task-list" id="list-todo"></div>
+                </div>
+                <div class="kanban-column" id="col-inprogress" data-status="in_progress">
+                    <h2 class="column-title">In Progress <span class="task-count" id="count-inprogress">0</span></h2>
+                    <div class="kanban-task-list" id="list-inprogress"></div>
+                </div>
+                <div class="kanban-column" id="col-done" data-status="done">
+                    <h2 class="column-title">Done <span class="task-count" id="count-done">0</span></h2>
+                    <div class="kanban-task-list" id="list-done"></div>
                 </div>
             </section>
             </div>

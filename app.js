@@ -47,7 +47,12 @@ const taskPriority = document.getElementById('taskPriority');
 const taskPeriodType = document.getElementById('taskPeriodType');
 const taskPeriod = document.getElementById('taskPeriod');
 
-const taskList = document.getElementById('taskList');
+const listTodo = document.getElementById('list-todo');
+const listInProgress = document.getElementById('list-inprogress');
+const listDone = document.getElementById('list-done');
+const countTodo = document.getElementById('count-todo');
+const countInProgress = document.getElementById('count-inprogress');
+const countDone = document.getElementById('count-done');
 const filterAssignee = document.getElementById('filterAssignee');
 const filterPeriod = document.getElementById('filterPeriod');
 const filterDate = document.getElementById('filterDate');
@@ -121,6 +126,18 @@ if (!pollingInterval) {
 
 // Event Listeners
 function setupEventListeners() {
+    const cols = [
+        { el: document.getElementById('col-todo'), status: 'todo' },
+        { el: document.getElementById('col-inprogress'), status: 'in_progress' },
+        { el: document.getElementById('col-done'), status: 'done' }
+    ];
+    
+    cols.forEach(col => {
+        if (!col.el) return;
+        col.el.ondragover = allowDrop;
+        col.el.ondragleave = dragLeave;
+        col.el.ondrop = (e) => drop(e, col.status);
+    });
     navPersonal.addEventListener('click', () => {
         currentMode = 'personal';
         navPersonal.classList.add('active');
@@ -347,6 +364,7 @@ async function handleTaskSubmit(e) {
         mode: currentMode,
         uid: uid,
         department: currentMode === 'team' ? customDepartmentName : '',
+        status: 'todo',
         createdAt: new Date().toISOString()
     };
 
@@ -375,23 +393,56 @@ window.deleteTask = async function(taskId) {
     }
 }
 
-// Toggle Task Completion
-window.toggleTaskCompletion = async function(taskId, isCompleted) {
-    try {
-        await fetch(`/api/tasks?id=${taskId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ completed: isCompleted })
-        });
-        fetchTasks(); // Refresh immediately
-    } catch (e) {
-        console.error("Error updating document: ", e);
+// Drag & Drop Logic
+let draggedTaskId = null;
+
+function drag(event) {
+    draggedTaskId = event.currentTarget.id.replace('task-', '');
+    event.dataTransfer.setData("text", draggedTaskId);
+}
+
+function allowDrop(event) {
+    event.preventDefault();
+    const column = event.currentTarget.querySelector('.kanban-task-list');
+    if (column) column.classList.add('drag-over');
+}
+
+function drop(event, newStatus) {
+    event.preventDefault();
+    const column = event.currentTarget.querySelector('.kanban-task-list');
+    if (column) column.classList.remove('drag-over');
+    
+    const taskId = event.dataTransfer.getData("text") || draggedTaskId;
+    if (!taskId) return;
+    
+    // Optimistic UI update
+    const taskIndex = tasks[currentMode].findIndex(t => t._id === taskId);
+    if (taskIndex !== -1) {
+        tasks[currentMode][taskIndex].status = newStatus;
+        renderTasks();
     }
+
+    fetch(`/api/tasks?id=${taskId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+    }).then(() => fetchTasks()).catch(e => console.error(e));
+    
+    draggedTaskId = null;
+}
+
+function dragLeave(event) {
+    const column = event.currentTarget.querySelector('.kanban-task-list');
+    if (column) column.classList.remove('drag-over');
 }
 
 // Render Tasks to DOM
 function renderTasks() {
-    taskList.innerHTML = '';
+    listTodo.innerHTML = '';
+    listInProgress.innerHTML = '';
+    listDone.innerHTML = '';
+    
+    let cTodo = 0, cInProg = 0, cDone = 0;
     
     const currentTasks = tasks[currentMode];
     const selectedAssignee = filterAssignee.value;
@@ -406,22 +457,16 @@ function renderTasks() {
         return matchAssignee && matchPeriod;
     });
 
-    if (filteredTasks.length === 0) {
-        taskList.innerHTML = `<p style="color: var(--text-secondary); grid-column: 1 / -1; text-align: center; padding: 2rem;">No tasks found.</p>`;
-        return;
-    }
-
     filteredTasks.forEach(task => {
         const card = document.createElement('div');
         card.className = 'task-card';
-        
-        const isCompleted = task.completed ? 'checked' : '';
-        const titleStyle = task.completed ? 'text-decoration: line-through; color: var(--text-secondary);' : '';
+        card.id = `task-${task._id}`;
+        card.draggable = true;
+        card.ondragstart = drag;
         
         card.innerHTML = `
             <div class="task-header" style="display: flex; align-items: center; gap: 10px;">
-                <input type="checkbox" ${isCompleted} onchange="toggleTaskCompletion('${task._id}', this.checked)" style="transform: scale(1.5); cursor: pointer; accent-color: var(--accent);">
-                <h3 class="task-title" style="${titleStyle} flex: 1; margin: 0;">${task.title}</h3>
+                <h3 class="task-title" style="margin: 0; flex: 1;">${task.title}</h3>
                 <span class="badge ${task.priority.toLowerCase()}">${task.priority}</span>
             </div>
             <div class="task-meta">
@@ -433,8 +478,22 @@ function renderTasks() {
             </div>
         `;
         
-        taskList.appendChild(card);
+        const status = task.status || 'todo';
+        if (status === 'todo') {
+            listTodo.appendChild(card);
+            cTodo++;
+        } else if (status === 'in_progress') {
+            listInProgress.appendChild(card);
+            cInProg++;
+        } else if (status === 'done') {
+            listDone.appendChild(card);
+            cDone++;
+        }
     });
+    
+    countTodo.textContent = cTodo;
+    countInProgress.textContent = cInProg;
+    countDone.textContent = cDone;
 }
 
 // Render Assignees Dropdowns
