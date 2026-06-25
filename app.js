@@ -43,6 +43,7 @@ const filterAssigneeContainer = document.getElementById('filterAssignee').parent
 
 const taskForm = document.getElementById('taskForm');
 const taskTitle = document.getElementById('taskTitle');
+const taskDescription = document.getElementById('taskDescription');
 const taskPriority = document.getElementById('taskPriority');
 const taskPeriodType = document.getElementById('taskPeriodType');
 const taskPeriod = document.getElementById('taskPeriod');
@@ -346,18 +347,20 @@ async function handleTaskSubmit(e) {
     e.preventDefault();
 
     const title = taskTitle.value.trim();
+    const description = taskDescription.value.trim();
     const priority = taskPriority.value;
     const periodType = taskPeriodType.value;
     const period = periodType === 'Custom' ? taskPeriod.value : periodType;
     const assignee = currentMode === 'team' ? taskAssigneeInput.value : 'Me';
 
     if (!title || !priority || !periodType || (periodType === 'Custom' && !period) || (currentMode === 'team' && !assignee)) {
-        alert('Please fill in all fields.');
+        alert('Please fill in all required fields.');
         return;
     }
 
     const newTask = {
         title,
+        description,
         priority,
         period,
         assignee,
@@ -464,11 +467,14 @@ function renderTasks() {
         card.draggable = true;
         card.ondragstart = drag;
         
+        const descriptionHtml = task.description ? `<p class="task-description">${task.description.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')}</p>` : '';
+        
         card.innerHTML = `
             <div class="task-header" style="display: flex; align-items: center; gap: 10px;">
                 <h3 class="task-title" style="margin: 0; flex: 1;">${task.title}</h3>
                 <span class="badge ${task.priority.toLowerCase()}">${task.priority}</span>
             </div>
+            ${descriptionHtml}
             <div class="task-meta">
                 <span>🗓️ ${task.period}</span>
                 ${currentMode === 'team' ? `<span>👤 ${task.assignee}</span>` : ''}

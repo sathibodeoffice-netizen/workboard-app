@@ -165,7 +165,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     gap: 1rem;
 }
 
-#taskTitle {
+#taskTitle, #taskDescription {
     padding: 1rem;
     background-color: var(--bg-primary);
     border: 1px solid var(--border-color);
@@ -174,10 +174,24 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     font-size: 1.1rem;
     outline: none;
     transition: border-color 0.3s ease;
+    font-family: inherit;
+    resize: vertical;
 }
 
-#taskTitle:focus {
+#taskDescription {
+    font-size: 0.95rem;
+}
+
+#taskTitle:focus, #taskDescription:focus {
     border-color: var(--accent);
+}
+
+.task-description {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 .form-row {
