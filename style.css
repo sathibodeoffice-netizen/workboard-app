@@ -505,3 +505,49 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     color: var(--text-secondary);
     opacity: 0.7;
 }
+
+/* Deadline Styles */
+#taskDeadline {
+    padding: 1rem;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s ease;
+    font-family: inherit;
+    flex: 1;
+    min-width: 200px;
+}
+
+#taskDeadline:focus {
+    border-color: var(--accent);
+}
+
+.task-deadline {
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.3rem;
+    color: var(--text-secondary);
+}
+
+.task-deadline.approaching {
+    color: #eab308; /* yellow */
+    font-weight: 500;
+}
+
+.task-card.approaching {
+    border-left: 4px solid #eab308;
+}
+
+.task-deadline.overdue {
+    color: #ef4444; /* red */
+    font-weight: 600;
+}
+
+.task-card.overdue {
+    border-left: 4px solid #ef4444;
+}

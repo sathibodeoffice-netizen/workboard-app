@@ -44,6 +44,7 @@ const filterAssigneeContainer = document.getElementById('filterAssignee').parent
 const taskForm = document.getElementById('taskForm');
 const taskTitle = document.getElementById('taskTitle');
 const taskDescription = document.getElementById('taskDescription');
+const taskDeadline = document.getElementById('taskDeadline');
 const taskPriority = document.getElementById('taskPriority');
 const taskPeriodType = document.getElementById('taskPeriodType');
 const taskPeriod = document.getElementById('taskPeriod');
@@ -70,6 +71,10 @@ const btnLogout = document.getElementById('btnLogout');
 
 // Initialize App
 function init() {
+    if ("Notification" in window) {
+        Notification.requestPermission();
+    }
+    
     renderAssigneeDropdowns();
     updateUIForMode();
     setupEventListeners();
@@ -123,6 +128,45 @@ async function fetchTasks() {
 // Fetch every 5 seconds to simulate real-time updates for the team
 if (!pollingInterval) {
     pollingInterval = setInterval(fetchTasks, 5000);
+}
+
+// Check Deadlines for Notifications
+setInterval(checkDeadlines, 60000); // Check every minute
+
+function checkDeadlines() {
+    if (Notification.permission !== "granted") return;
+    
+    let notifiedTasks = JSON.parse(localStorage.getItem('notifiedTasks')) || {};
+    const now = new Date().getTime();
+    let uiNeedsUpdate = false;
+    
+    ['personal', 'team'].forEach(mode => {
+        tasks[mode].forEach(task => {
+            if (task.status === 'done' || !task.deadline) return;
+            
+            const deadlineTime = new Date(task.deadline).getTime();
+            const timeDiff = deadlineTime - now;
+            
+            if (timeDiff <= 0) {
+                if (notifiedTasks[task._id] !== 'overdue') {
+                    new Notification("Task Overdue!", { body: `The task "${task.title}" is overdue!` });
+                    notifiedTasks[task._id] = 'overdue';
+                    uiNeedsUpdate = true;
+                }
+            } else if (timeDiff > 0 && timeDiff <= 3600000) {
+                if (!notifiedTasks[task._id]) {
+                    new Notification("Deadline Approaching!", { body: `The task "${task.title}" is due in less than an hour!` });
+                    notifiedTasks[task._id] = 'approaching';
+                    uiNeedsUpdate = true;
+                }
+            }
+        });
+    });
+    
+    localStorage.setItem('notifiedTasks', JSON.stringify(notifiedTasks));
+    if (uiNeedsUpdate) {
+        renderTasks();
+    }
 }
 
 // Event Listeners
@@ -348,6 +392,7 @@ async function handleTaskSubmit(e) {
 
     const title = taskTitle.value.trim();
     const description = taskDescription.value.trim();
+    const deadline = taskDeadline.value;
     const priority = taskPriority.value;
     const periodType = taskPeriodType.value;
     const period = periodType === 'Custom' ? taskPeriod.value : periodType;
@@ -361,6 +406,7 @@ async function handleTaskSubmit(e) {
     const newTask = {
         title,
         description,
+        deadline,
         priority,
         period,
         assignee,
@@ -509,8 +555,21 @@ function renderTasks() {
     });
 
     filteredTasks.forEach(task => {
+        const status = task.status || 'todo';
+        
+        let deadlineHtml = '';
+        let deadlineClass = '';
+        if (task.deadline && status !== 'done') {
+            const timeDiff = new Date(task.deadline).getTime() - new Date().getTime();
+            if (timeDiff <= 0) deadlineClass = 'overdue';
+            else if (timeDiff <= 3600000) deadlineClass = 'approaching';
+            
+            const formattedDate = new Date(task.deadline).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+            deadlineHtml = `<div class="task-deadline ${deadlineClass}">⏳ Due: ${formattedDate}</div>`;
+        }
+
         const card = document.createElement('div');
-        card.className = 'task-card';
+        card.className = `task-card ${deadlineClass}`;
         card.id = `task-${task._id}`;
         card.draggable = true;
         card.ondragstart = drag;
@@ -538,6 +597,7 @@ function renderTasks() {
                 <h3 class="task-title" style="margin: 0; flex: 1;">${task.title}</h3>
                 <span class="badge ${task.priority.toLowerCase()}">${task.priority}</span>
             </div>
+            ${deadlineHtml}
             ${descriptionHtml}
             ${subtasksHtml}
             <div class="task-meta">
