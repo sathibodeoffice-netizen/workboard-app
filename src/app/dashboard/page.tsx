@@ -828,10 +828,7 @@ function DashboardContent() {
             </div>
             
             <div className="form-row" style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-              <div style={{ flex: "1 1 140px", minWidth: "140px", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 0.8rem", borderRadius: "8px", border: "1px solid var(--border-glass)", background: "var(--bg-input)" }}>
-                <label htmlFor="taskColorPicker" style={{ fontSize: "0.95rem", color: "var(--text-secondary)", cursor: "pointer" }}>Task Color</label>
-                <input id="taskColorPicker" type="color" className="color-picker" value={taskColor} onChange={(e) => setTaskColor(e.target.value)} title="Choose Task Color" style={{ height: "35px", width: "35px", padding: "0", border: "none", background: "transparent", cursor: "pointer" }} />
-              </div>
+              <CustomColorPicker value={taskColor} onChange={setTaskColor} />
               <input
                 type={deadlineInputType}
                 placeholder="Deadline (optional)"
@@ -889,6 +886,70 @@ function DashboardContent() {
           </form>
         </div>
       </div>
+    </div>
+  );
+}
+
+function CustomColorPicker({ value, onChange }: { value: string, onChange: (color: string) => void }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const presetColors = [
+    "#000000", "#434343", "#666666", "#999999", "#b7b7b7", "#cccccc", "#d9d9d9", "#efefef", "#f3f3f3", "#ffffff",
+    "#980000", "#ff0000", "#ff9900", "#ffff00", "#00ff00", "#00ffff", "#4a86e8", "#0000ff", "#9900ff", "#ff00ff",
+    "#e6b8af", "#f4cccc", "#fce5cd", "#fff2cc", "#d9ead3", "#d0e0e3", "#c9daf8", "#cfe2f3", "#d9d2e9", "#ead1dc",
+    "#dd7e6b", "#ea9999", "#f9cb9c", "#ffe599", "#b6d7a8", "#a2c4c9", "#a4c2f4", "#9fc5e8", "#b4a7d6", "#d5a6bd",
+    "#cc4125", "#e06666", "#f6b26b", "#ffd966", "#93c47d", "#76a5af", "#6d9eeb", "#6fa8dc", "#8e7cc3", "#c27ba0",
+    "#a61c00", "#cc0000", "#e69138", "#f1c232", "#6aa84f", "#45818e", "#3c78d8", "#3d85c6", "#674ea7", "#a64d79",
+    "#85200c", "#990000", "#b45f06", "#bf9000", "#38761d", "#134f5c", "#1155cc", "#0b5394", "#351c75", "#741b47",
+    "#5b0f00", "#660000", "#783f04", "#7f6000", "#274e13", "#0c343d", "#1c4587", "#073763", "#20124d", "#4c1130"
+  ];
+
+  return (
+    <div style={{ position: "relative", flex: "1 1 140px", minWidth: "140px" }}>
+      <div 
+        onClick={() => setIsOpen(!isOpen)}
+        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 0.8rem", borderRadius: "8px", border: "1px solid var(--border-glass)", background: "var(--bg-input)", cursor: "pointer", height: "45px" }}
+      >
+        <span style={{ fontSize: "0.95rem", color: "var(--text-secondary)" }}>🎨 Color</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ height: "24px", width: "24px", borderRadius: "50%", backgroundColor: value, border: "2px solid rgba(255,255,255,0.2)" }}></div>
+          <span style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>▼</span>
+        </div>
+      </div>
+      
+      {isOpen && (
+        <>
+          <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 99 }} onClick={() => setIsOpen(false)}></div>
+          <div style={{ position: "absolute", top: "50px", left: 0, zIndex: 100, background: "var(--bg-panel)", border: "1px solid var(--border-glass)", borderRadius: "8px", padding: "12px", width: "260px", boxShadow: "0 4px 15px rgba(0,0,0,0.5)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+              <span style={{ fontSize: "0.75rem", fontWeight: "bold", color: "var(--text-secondary)", letterSpacing: "1px" }}>STANDARD</span>
+              <button 
+                onClick={(e) => { e.stopPropagation(); onChange("#3b82f6"); setIsOpen(false); }}
+                style={{ background: "transparent", border: "none", color: "var(--text-secondary)", fontSize: "0.75rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px" }}
+              >
+                🔄 Reset
+              </button>
+            </div>
+            
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", marginBottom: "12px", justifyContent: "center" }}>
+              {presetColors.map(c => (
+                <div 
+                  key={c}
+                  onClick={() => { onChange(c); setIsOpen(false); }}
+                  style={{ width: "20px", height: "20px", borderRadius: "50%", backgroundColor: c, cursor: "pointer", border: value === c ? "2px solid white" : "1px solid rgba(255,255,255,0.1)", transform: value === c ? "scale(1.1)" : "scale(1)", transition: "transform 0.1s ease" }}
+                  title={c}
+                ></div>
+              ))}
+            </div>
+            
+            <hr style={{ border: "none", borderTop: "1px solid var(--border-glass)", margin: "10px 0" }} />
+            
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{ fontSize: "0.75rem", fontWeight: "bold", color: "var(--text-secondary)", letterSpacing: "1px" }}>CUSTOM</span>
+              <input type="color" className="color-picker" value={value} onChange={(e) => onChange(e.target.value)} style={{ width: "24px", height: "24px", border: "none", borderRadius: "50%", cursor: "pointer", background: "transparent", padding: 0 }} />
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
