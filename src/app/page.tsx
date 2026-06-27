@@ -10,9 +10,10 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && sessionStorage.getItem("isAuthenticated")) {
+    if (typeof window !== "undefined" && (sessionStorage.getItem("isAuthenticated") || localStorage.getItem("isAuthenticated"))) {
       router.push("/dashboard");
     }
   }, [router]);
@@ -33,9 +34,15 @@ export default function Home() {
       const data = await response.json();
 
       if (data.success) {
-        sessionStorage.setItem("isAuthenticated", "true");
-        sessionStorage.setItem("userEmail", email);
-        sessionStorage.setItem("uid", data.uid);
+        if (rememberMe && isLoginMode) {
+          localStorage.setItem("isAuthenticated", "true");
+          localStorage.setItem("userEmail", email);
+          localStorage.setItem("uid", data.uid);
+        } else {
+          sessionStorage.setItem("isAuthenticated", "true");
+          sessionStorage.setItem("userEmail", email);
+          sessionStorage.setItem("uid", data.uid);
+        }
         router.push("/dashboard");
       } else {
         alert("Error: " + data.message);
@@ -108,6 +115,18 @@ export default function Home() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
+            {isLoginMode && (
+              <div className="input-group" style={{ flexDirection: "row", alignItems: "center", gap: "0.5rem", marginTop: "-0.5rem" }}>
+                <input
+                  type="checkbox"
+                  id="rememberMe"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  style={{ width: "auto" }}
+                />
+                <label htmlFor="rememberMe" style={{ marginBottom: "0", fontSize: "0.9rem", cursor: "pointer" }}>Remember me</label>
+              </div>
+            )}
             <button type="submit" className="btn-get-started btn-full" disabled={isLoading}>
               {isLoading ? "Please wait..." : "Continue"}
             </button>

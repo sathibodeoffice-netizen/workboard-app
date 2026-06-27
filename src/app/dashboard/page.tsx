@@ -92,8 +92,8 @@ function DashboardContent() {
 
   useEffect(() => {
     // Authentication Check
-    const storedUid = sessionStorage.getItem("uid");
-    const isAuthenticated = sessionStorage.getItem("isAuthenticated");
+    const storedUid = sessionStorage.getItem("uid") || localStorage.getItem("uid");
+    const isAuthenticated = sessionStorage.getItem("isAuthenticated") || localStorage.getItem("isAuthenticated");
 
     if (!isAuthenticated || !storedUid) {
       router.push("/");
@@ -251,6 +251,9 @@ function DashboardContent() {
 
   const handleLogout = () => {
     sessionStorage.clear();
+    localStorage.removeItem("isAuthenticated");
+    localStorage.removeItem("uid");
+    localStorage.removeItem("userEmail");
     router.push("/");
   };
 
