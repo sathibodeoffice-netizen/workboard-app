@@ -741,9 +741,10 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 }
 
 .task-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.5);
-    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-6px);
+    box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.6);
+    border-color: rgba(255, 255, 255, 0.35);
+    background: var(--bg-glass-hover);
 }
 
 .task-header {
