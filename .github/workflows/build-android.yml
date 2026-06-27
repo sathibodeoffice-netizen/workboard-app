@@ -34,6 +34,9 @@ jobs:
       - name: Create web directory for Capacitor
         run: mkdir out && echo "<html><body>App Loading...</body></html>" > out/index.html
 
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
       - name: Sync Capacitor
         run: npx cap sync android
 
