@@ -127,11 +127,11 @@ function DashboardContent() {
     if (!uid) return;
 
     try {
-      const resPersonal = await fetch(`/api/tasks?uid=${uid}&mode=personal`);
+      const resPersonal = await fetch(`/api/tasks?uid=${uid}&mode=personal`, { cache: 'no-store' });
       const personalData = await resPersonal.json();
       const personal = Array.isArray(personalData) ? personalData : (personalData.tasks || []);
 
-      const resTeam = await fetch(`/api/tasks?department=${encodeURIComponent(customDepartmentName)}&mode=team`);
+      const resTeam = await fetch(`/api/tasks?department=${encodeURIComponent(customDepartmentName)}&mode=team`, { cache: 'no-store' });
       const teamData = await resTeam.json();
       const team = Array.isArray(teamData) ? teamData : (teamData.tasks || []);
 
