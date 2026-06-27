@@ -1,15 +1,15 @@
 import { MongoClient, Db } from 'mongodb';
 
-const MONGODB_URI = process.env.MONGODB_URI!;
-
-if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
-}
-
 let cachedClient: MongoClient | null = null;
 let cachedDb: Db | null = null;
 
 export default async function dbConnect() {
+  const MONGODB_URI = process.env.MONGODB_URI;
+
+  if (!MONGODB_URI) {
+    throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
+  }
+
   if (cachedClient && cachedDb) {
     return { client: cachedClient, db: cachedDb };
   }
@@ -17,7 +17,7 @@ export default async function dbConnect() {
   const client = new MongoClient(MONGODB_URI);
 
   await client.connect();
-  const db = client.db('test'); // Replace with your default db if not test
+  const db = client.db('workboard');
 
   cachedClient = client;
   cachedDb = db;
