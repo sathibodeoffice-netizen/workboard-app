@@ -787,22 +787,26 @@ function DashboardContent() {
       {/* Attachment Modal */}
       <div className={`modal ${isAttachmentModalOpen ? "" : "hidden"}`}>
         <div className="modal-content">
+          <button className="btn-close" onClick={() => { setIsAttachmentModalOpen(false); setAttachmentFile(null); setAttachmentLink(""); }}>&times;</button>
           <h2>Add Attachment</h2>
           <p>Upload a small image or paste an external link (Google Drive, GitHub, Slack, etc.).</p>
           
-          <div style={{ marginBottom: "1rem", marginTop: "1rem" }}>
+          <div className="input-group" style={{ marginBottom: "1rem", marginTop: "1rem" }}>
             <label style={{ display: "block", marginBottom: "0.5rem", color: "var(--text-secondary)" }}>External Link URL</label>
             <input type="url" placeholder="https://drive.google.com/..." style={{ width: "100%", boxSizing: "border-box" }} value={attachmentLink} onChange={(e) => setAttachmentLink(e.target.value)} />
-          <div className="input-group">
-            <label>Image File (Max 1MB)</label>
-            <input type="file" accept="image/*" onChange={(e) => setAttachmentFile(e.target.files ? e.target.files[0] : null)} />
           </div>
-          <div style={{ textAlign: "center", marginBottom: "1rem" }}>OR</div>
-          <div className="input-group">
-            <label>External Link</label>
-            <input type="url" placeholder="https://..." value={attachmentLink} onChange={(e) => setAttachmentLink(e.target.value)} />
+          
+          <div style={{ textAlign: "center", margin: "1rem 0", color: "var(--text-secondary)" }}>OR</div>
+          
+          <div className="input-group" style={{ marginBottom: "1.5rem" }}>
+            <label style={{ display: "block", marginBottom: "0.5rem", color: "var(--text-secondary)" }}>Upload Image (Max 1MB)</label>
+            <input type="file" accept="image/*" style={{ width: "100%", color: "var(--text-primary)" }} onChange={(e) => setAttachmentFile(e.target.files ? e.target.files[0] : null)} />
           </div>
-          <button className="btn-primary btn-full" onClick={handleAttachmentSubmit}>Attach</button>
+
+          <div className="modal-actions" style={{ display: "flex", gap: "10px" }}>
+            <button className="btn-secondary" onClick={() => { setIsAttachmentModalOpen(false); setAttachmentFile(null); setAttachmentLink(""); }}>Cancel</button>
+            <button className="btn-primary" onClick={handleAttachmentSubmit}>Add Attachment</button>
+          </div>
         </div>
       </div>
 
