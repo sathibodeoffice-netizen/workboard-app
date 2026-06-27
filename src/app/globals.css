@@ -318,8 +318,69 @@ body {
     --priority-medium: #f59e0b;
     --priority-low: #10b981;
     
-    --border-glass: rgba(255, 255, 255, 0.1); /* Slightly more visible border */
+    --border-glass: rgba(255, 255, 255, 0.1);
     --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    --bg-gradient-end: #000000;
+}
+
+.theme-light {
+    --bg-base: #e2e8f0; 
+    --bg-glass: rgba(255, 255, 255, 0.75);
+    --bg-glass-hover: rgba(255, 255, 255, 0.95);
+    --bg-input: rgba(0, 0, 0, 0.05); 
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --accent-glow: rgba(37, 99, 235, 0.4);
+    --border-glass: rgba(0, 0, 0, 0.15); 
+    --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+    --bg-gradient-end: #cbd5e1;
+}
+
+.theme-dark {
+    --bg-base: #000000; 
+    --bg-glass: rgba(10, 10, 10, 0.8);
+    --bg-glass-hover: rgba(20, 20, 20, 0.95);
+    --bg-input: rgba(255, 255, 255, 0.08); 
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --accent: #6366f1;
+    --accent-hover: #4f46e5;
+    --accent-glow: rgba(99, 102, 241, 0.4);
+    --border-glass: rgba(255, 255, 255, 0.1); 
+    --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+    --bg-gradient-end: #000000;
+}
+
+.theme-forest {
+    --bg-base: #064e3b; 
+    --bg-glass: rgba(6, 78, 59, 0.65);
+    --bg-glass-hover: rgba(6, 95, 70, 0.85);
+    --bg-input: rgba(255, 255, 255, 0.1); 
+    --text-primary: #ecfdf5;
+    --text-secondary: #a7f3d0;
+    --accent: #10b981;
+    --accent-hover: #059669;
+    --accent-glow: rgba(16, 185, 129, 0.4);
+    --border-glass: rgba(255, 255, 255, 0.15); 
+    --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+    --bg-gradient-end: #022c22;
+}
+
+.theme-sunset {
+    --bg-base: #4a044e; 
+    --bg-glass: rgba(74, 4, 78, 0.65);
+    --bg-glass-hover: rgba(112, 26, 117, 0.85);
+    --bg-input: rgba(255, 255, 255, 0.1); 
+    --text-primary: #fdf4ff;
+    --text-secondary: #f0abfc;
+    --accent: #d946ef;
+    --accent-hover: #c026d3;
+    --accent-glow: rgba(217, 70, 239, 0.4);
+    --border-glass: rgba(255, 255, 255, 0.15); 
+    --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+    --bg-gradient-end: #2e1065;
 }
 
 /* Custom Scrollbar */
@@ -361,7 +422,7 @@ body::before {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: radial-gradient(circle at center, #1e3a8a 0%, #0f172a 30%, #020617 70%);
+    background: radial-gradient(circle at center, var(--bg-glass) 0%, var(--bg-base) 30%, var(--bg-gradient-end) 70%);
     background-size: 200% 200%;
     animation: rotateBg 30s ease infinite alternate;
     z-index: -2;

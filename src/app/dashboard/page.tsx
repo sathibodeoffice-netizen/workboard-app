@@ -54,6 +54,7 @@ function DashboardContent() {
   const [filterPeriod, setFilterPeriod] = useState("all");
   const [filterDate, setFilterDate] = useState("");
   const [sortOption, setSortOption] = useState("date_desc");
+  const [theme, setTheme] = useState("theme-midnight");
 
   // Modals
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
@@ -97,6 +98,10 @@ function DashboardContent() {
     setUid(storedUid);
 
     // Initial setups
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
     const deptFromUrl = searchParams.get("dept");
     if (deptFromUrl) {
       localStorage.setItem("customDepartmentName", deptFromUrl);
@@ -199,6 +204,11 @@ function DashboardContent() {
     const deadlineInterval = setInterval(checkDeadlines, 60000);
     return () => clearInterval(deadlineInterval);
   }, [tasks, notifiedTasks]);
+
+  useEffect(() => {
+    document.body.className = `min-h-full flex flex-col ${theme}`;
+    localStorage.setItem("theme", theme);
+  }, [theme]);
 
   // Handlers
   const handleNavClick = (mode: "personal" | "team" | "settings") => {
@@ -690,6 +700,16 @@ function DashboardContent() {
               <option value="date_asc">Oldest First</option>
               <option value="alpha_asc">Alphabetical (A-Z)</option>
               <option value="alpha_desc">Alphabetical (Z-A)</option>
+            </select>
+          </div>
+          <div className="filter-group">
+            <label htmlFor="themeOption">Theme / Mode</label>
+            <select id="themeOption" value={theme} onChange={(e) => setTheme(e.target.value)}>
+              <option value="theme-midnight">Midnight Blue (Default)</option>
+              <option value="theme-light">Day Mode (Light)</option>
+              <option value="theme-dark">Night Mode (Dark)</option>
+              <option value="theme-forest">Forest (Premium)</option>
+              <option value="theme-sunset">Sunset (Premium)</option>
             </select>
           </div>
         </div>
