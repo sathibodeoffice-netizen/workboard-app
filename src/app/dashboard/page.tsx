@@ -227,7 +227,7 @@ function DashboardContent() {
     const periodValue = taskPeriodType === "Custom" ? taskPeriod : taskPeriodType;
     const assigneeValue = currentMode === "team" ? taskAssignee : "Me";
 
-    if (!taskTitle || !taskPriority || !taskPeriodType || (taskPeriodType === "Custom" && !taskPeriod) || (currentMode === "team" && !assigneeValue)) {
+    if (!taskTitle.trim() || !taskPriority || !taskPeriodType || (taskPeriodType === "Custom" && !taskPeriod.trim()) || (currentMode === "team" && !assigneeValue)) {
       alert("Please fill in all required fields.");
       return;
     }
