@@ -541,13 +541,21 @@ function DashboardContent() {
         else if (timeDiff <= 3600000) deadlineClass = "approaching";
       }
 
+      const priorityColor = 
+        task.priority === "High" ? "#ef4444" : 
+        task.priority === "Medium" ? "#f59e0b" : 
+        task.priority === "Low" ? "#10b981" : "rgba(255, 255, 255, 0.12)";
+
       return (
         <div
           key={task._id}
           className={`task-card ${deadlineClass}`}
           draggable
           onDragStart={(e) => handleDragStart(e, task._id)}
-          style={{ borderTop: task.color ? `4px solid ${task.color}` : "" }}
+          style={{ 
+            borderTop: task.color ? `4px solid ${task.color}` : "",
+            borderLeft: task.priority ? `4px solid ${priorityColor}` : ""
+          }}
         >
           <div className="task-header">
             <h3 className="task-title">{task.title}</h3>
