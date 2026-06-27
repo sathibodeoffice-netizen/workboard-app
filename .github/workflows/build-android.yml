@@ -31,6 +31,9 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Create web directory for Capacitor
+        run: mkdir out && echo "<html><body>App Loading...</body></html>" > out/index.html
+
       - name: Sync Capacitor
         run: npx cap sync android
 
