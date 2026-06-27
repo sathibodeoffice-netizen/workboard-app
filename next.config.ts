@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  serverExternalPackages: ["mongoose"],
 };
 
 export default nextConfig;
