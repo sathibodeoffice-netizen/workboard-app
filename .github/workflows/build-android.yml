@@ -31,17 +31,11 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Create web directory for Capacitor
-        run: mkdir out && echo "<html><body>App Loading...</body></html>" > out/index.html
-
       - name: Make gradlew executable and fix line endings
         run: |
           sudo apt-get install -y dos2unix
           dos2unix android/gradlew
           chmod +x android/gradlew
-
-      - name: Sync Capacitor
-        run: npx cap sync android
 
       - name: Build APK
         working-directory: ./android
