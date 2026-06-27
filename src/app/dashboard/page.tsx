@@ -515,7 +515,17 @@ function DashboardContent() {
   });
 
   const renderTaskList = (status: string) => {
-    return currentTasks.filter(t => t.status === status).map(task => {
+    const statusTasks = currentTasks.filter(t => t.status === status);
+    
+    if (statusTasks.length === 0) {
+      return (
+        <div style={{ textAlign: "center", padding: "2rem 0", color: "var(--text-secondary)", fontSize: "0.95rem", fontStyle: "italic", opacity: 0.7 }}>
+          No tasks yet
+        </div>
+      );
+    }
+
+    return statusTasks.map(task => {
       let deadlineClass = "";
       if (task.deadline && status !== "done") {
         const timeDiff = new Date(task.deadline).getTime() - new Date().getTime();
