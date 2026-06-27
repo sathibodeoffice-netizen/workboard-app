@@ -64,6 +64,8 @@ function DashboardContent() {
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
   const [targetTaskIdForAttachment, setTargetTaskIdForAttachment] = useState<string | null>(null);
 
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+
   // Butler settings
   const [butlerAutoDelete, setButlerAutoDelete] = useState(false);
   const [butlerAutoDate, setButlerAutoDate] = useState(false);
@@ -257,6 +259,7 @@ function DashboardContent() {
       setTaskPeriodType("");
       setTaskPeriod("");
       setTaskAssignee("");
+      setIsTaskModalOpen(false);
       
       fetchTasks();
     } catch (e) {
@@ -692,74 +695,11 @@ function DashboardContent() {
                       <button className="btn-secondary" onClick={() => setIsProjectModalOpen(true)}>New Project</button>
                     </>
                   )}
+                  <button className="btn-primary" style={{ padding: "0.6rem 1.2rem", fontSize: "0.95rem" }} onClick={() => setIsTaskModalOpen(true)}>+ New Task</button>
                 </div>
               </div>
               <p>{currentMode === "personal" ? "Manage your private tasks efficiently." : "Shared tasks for the department."}</p>
             </header>
-
-            <section className="task-form-section">
-              <form onSubmit={handleTaskSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
-                <input type="text" id="taskTitle" placeholder="What needs to be done?" required value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)} />
-                <textarea id="taskDescription" placeholder="Add a detailed description here..." rows={2} value={taskDescription} onChange={(e) => setTaskDescription(e.target.value)} />
-                
-                <div className="form-row">
-                  <input type="color" className="color-picker" value={taskColor} onChange={(e) => setTaskColor(e.target.value)} title="Choose Task Color" />
-                  <input
-                    type={deadlineInputType}
-                    placeholder="Deadline (optional)"
-                    onFocus={() => setDeadlineInputType("datetime-local")}
-                    onBlur={() => setDeadlineInputType(taskDeadline ? "datetime-local" : "text")}
-                    value={taskDeadline}
-                    onChange={(e) => setTaskDeadline(e.target.value)}
-                  />
-                  <select required value={taskPriority} onChange={(e) => setTaskPriority(e.target.value)}>
-                    <option value="" disabled>Priority</option>
-                    <option value="High">High</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Low">Low</option>
-                  </select>
-                  
-                  <select required value={taskPeriodType} onChange={(e) => setTaskPeriodType(e.target.value)}>
-                    <option value="" disabled>Period</option>
-                    <option value="Daily">Daily</option>
-                    <option value="Weekly">Weekly</option>
-                    <option value="Monthly">Monthly</option>
-                    <option value="Custom">Custom Date...</option>
-                  </select>
-
-                  {taskPeriodType === "Custom" && (
-                    <input type="date" required value={taskPeriod} onChange={(e) => setTaskPeriod(e.target.value)} />
-                  )}
-
-                  {currentMode === "team" && (
-                    <select required value={taskAssignee} onChange={(e) => {
-                      if (e.target.value === "ADD_NEW") {
-                        const newAssignee = prompt("Enter new Assignee name:");
-                        if (newAssignee && newAssignee.trim() !== "") {
-                          const trimmed = newAssignee.trim();
-                          if (!assignees.includes(trimmed)) {
-                            const newArr = [...assignees, trimmed];
-                            setAssignees(newArr);
-                            localStorage.setItem("assignees", JSON.stringify(newArr));
-                          }
-                          setTaskAssignee(trimmed);
-                        } else {
-                          setTaskAssignee("");
-                        }
-                      } else {
-                        setTaskAssignee(e.target.value);
-                      }
-                    }}>
-                      <option value="" disabled>Assignee</option>
-                      {assignees.map(a => <option key={a} value={a}>{a}</option>)}
-                      <option value="ADD_NEW">+ Add New</option>
-                    </select>
-                  )}
-
-                  <button type="submit" className="btn-primary">Add Task</button>
-                </div>
-              </form>
-            </section>
 
             <section className="kanban-board">
               <div className="kanban-column" onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={(e) => handleDrop(e, "todo")}>
@@ -853,19 +793,89 @@ function DashboardContent() {
           <div style={{ marginBottom: "1rem", marginTop: "1rem" }}>
             <label style={{ display: "block", marginBottom: "0.5rem", color: "var(--text-secondary)" }}>External Link URL</label>
             <input type="url" placeholder="https://drive.google.com/..." style={{ width: "100%", boxSizing: "border-box" }} value={attachmentLink} onChange={(e) => setAttachmentLink(e.target.value)} />
+          <div className="input-group">
+            <label>Image File (Max 1MB)</label>
+            <input type="file" accept="image/*" onChange={(e) => setAttachmentFile(e.target.files ? e.target.files[0] : null)} />
           </div>
-          
-          <div style={{ textAlign: "center", margin: "1rem 0", color: "var(--text-secondary)" }}>OR</div>
-          
-          <div style={{ marginBottom: "1.5rem" }}>
-            <label style={{ display: "block", marginBottom: "0.5rem", color: "var(--text-secondary)" }}>Upload Image (Max 1MB)</label>
-            <input type="file" accept="image/*" style={{ width: "100%", color: "var(--text-primary)" }} onChange={(e) => setAttachmentFile(e.target.files ? e.target.files[0] : null)} />
+          <div style={{ textAlign: "center", marginBottom: "1rem" }}>OR</div>
+          <div className="input-group">
+            <label>External Link</label>
+            <input type="url" placeholder="https://..." value={attachmentLink} onChange={(e) => setAttachmentLink(e.target.value)} />
           </div>
+          <button className="btn-primary btn-full" onClick={handleAttachmentSubmit}>Attach</button>
+        </div>
+      </div>
 
-          <div className="modal-actions">
-            <button className="btn-secondary" onClick={() => setIsAttachmentModalOpen(false)}>Cancel</button>
-            <button className="btn-primary" onClick={handleAttachmentSubmit}>Add Attachment</button>
-          </div>
+      {/* Task Modal */}
+      <div className={`modal ${isTaskModalOpen ? "" : "hidden"}`}>
+        <div className="modal-content" style={{ maxWidth: "600px" }}>
+          <button className="btn-close" onClick={() => setIsTaskModalOpen(false)}>&times;</button>
+          <h2>Create New Task</h2>
+          <form onSubmit={handleTaskSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+            <div className="input-group" style={{ marginBottom: 0 }}>
+              <input type="text" placeholder="Task Title" required value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)} style={{ width: "100%", padding: "1rem", borderRadius: "10px", border: "1px solid var(--border-glass)", background: "var(--bg-input)", color: "var(--text-primary)" }} />
+            </div>
+            <div className="input-group" style={{ marginBottom: 0 }}>
+              <textarea placeholder="Detailed description..." rows={3} value={taskDescription} onChange={(e) => setTaskDescription(e.target.value)} style={{ width: "100%", padding: "1rem", borderRadius: "10px", border: "1px solid var(--border-glass)", background: "var(--bg-input)", color: "var(--text-primary)", resize: "vertical" }} />
+            </div>
+            
+            <div className="form-row" style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+              <input type="color" className="color-picker" value={taskColor} onChange={(e) => setTaskColor(e.target.value)} title="Choose Task Color" style={{ height: "45px", width: "45px", padding: "0", border: "none", borderRadius: "8px", background: "transparent", cursor: "pointer" }} />
+              <input
+                type={deadlineInputType}
+                placeholder="Deadline (optional)"
+                onFocus={() => setDeadlineInputType("datetime-local")}
+                onBlur={() => setDeadlineInputType(taskDeadline ? "datetime-local" : "text")}
+                value={taskDeadline}
+                onChange={(e) => setTaskDeadline(e.target.value)}
+                style={{ flex: "1 1 140px", minWidth: "140px", padding: "0.8rem", borderRadius: "8px", border: "1px solid var(--border-glass)", background: "var(--bg-input)", color: "var(--text-primary)" }}
+              />
+              <select required value={taskPriority} onChange={(e) => setTaskPriority(e.target.value)} style={{ flex: "1 1 140px", minWidth: "140px", padding: "0.8rem", borderRadius: "8px", border: "1px solid var(--border-glass)", background: "var(--bg-input)", color: "var(--text-primary)" }}>
+                <option value="" disabled>Priority</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+              
+              <select required value={taskPeriodType} onChange={(e) => setTaskPeriodType(e.target.value)} style={{ flex: "1 1 140px", minWidth: "140px", padding: "0.8rem", borderRadius: "8px", border: "1px solid var(--border-glass)", background: "var(--bg-input)", color: "var(--text-primary)" }}>
+                <option value="" disabled>Period</option>
+                <option value="Daily">Daily</option>
+                <option value="Weekly">Weekly</option>
+                <option value="Monthly">Monthly</option>
+                <option value="Custom">Custom Date...</option>
+              </select>
+
+              {taskPeriodType === "Custom" && (
+                <input type="date" required value={taskPeriod} onChange={(e) => setTaskPeriod(e.target.value)} style={{ flex: "1 1 140px", minWidth: "140px", padding: "0.8rem", borderRadius: "8px", border: "1px solid var(--border-glass)", background: "var(--bg-input)", color: "var(--text-primary)" }} />
+              )}
+
+              {currentMode === "team" && (
+                <select required value={taskAssignee} onChange={(e) => {
+                  if (e.target.value === "ADD_NEW") {
+                    const newAssignee = prompt("Enter new Assignee name:");
+                    if (newAssignee && newAssignee.trim() !== "") {
+                      const trimmed = newAssignee.trim();
+                      if (!assignees.includes(trimmed)) {
+                        const newArr = [...assignees, trimmed];
+                        setAssignees(newArr);
+                        localStorage.setItem("assignees", JSON.stringify(newArr));
+                      }
+                      setTaskAssignee(trimmed);
+                    } else {
+                      setTaskAssignee("");
+                    }
+                  } else {
+                    setTaskAssignee(e.target.value);
+                  }
+                }} style={{ flex: "1 1 140px", minWidth: "140px", padding: "0.8rem", borderRadius: "8px", border: "1px solid var(--border-glass)", background: "var(--bg-input)", color: "var(--text-primary)" }}>
+                  <option value="" disabled>Assignee</option>
+                  {assignees.map(a => <option key={a} value={a}>{a}</option>)}
+                  <option value="ADD_NEW">+ Add New</option>
+                </select>
+              )}
+            </div>
+            <button type="submit" className="btn-primary btn-full">Create Task</button>
+          </form>
         </div>
       </div>
     </div>
