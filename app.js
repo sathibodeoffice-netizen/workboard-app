@@ -36,6 +36,9 @@ const navDepartment = document.getElementById('navDepartment');
 const navSettings = document.getElementById('navSettings');
 const dashboardView = document.getElementById('dashboardView');
 const settingsView = document.getElementById('settingsView');
+const sidebar = document.querySelector('.sidebar');
+const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+const mobileMenuBtnSettings = document.getElementById('mobileMenuBtnSettings');
 const boardTitle = document.getElementById('boardTitle');
 const boardSubtitle = document.getElementById('boardSubtitle');
 const taskAssigneeInput = document.getElementById('taskAssignee');
@@ -213,6 +216,23 @@ function setupEventListeners() {
         col.el.ondragleave = dragLeave;
         col.el.ondrop = (e) => drop(e, col.status);
     });
+
+    const toggleSidebar = () => {
+        sidebar.classList.toggle('open');
+    };
+
+    if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', toggleSidebar);
+    if (mobileMenuBtnSettings) mobileMenuBtnSettings.addEventListener('click', toggleSidebar);
+
+    // Close sidebar if clicking outside on mobile
+    document.addEventListener('click', (e) => {
+        if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
+            if (!sidebar.contains(e.target) && e.target !== mobileMenuBtn && e.target !== mobileMenuBtnSettings) {
+                sidebar.classList.remove('open');
+            }
+        }
+    });
+
     navPersonal.addEventListener('click', () => {
         currentMode = 'personal';
         navPersonal.classList.add('active');
@@ -228,6 +248,7 @@ function setupEventListeners() {
 
         updateUIForMode();
         renderTasks();
+        if (window.innerWidth <= 768) sidebar.classList.remove('open');
     });
 
     navDepartment.addEventListener('click', () => {
@@ -245,6 +266,7 @@ function setupEventListeners() {
 
         updateUIForMode();
         renderTasks();
+        if (window.innerWidth <= 768) sidebar.classList.remove('open');
     });
 
     navSettings.addEventListener('click', () => {
@@ -253,6 +275,7 @@ function setupEventListeners() {
         navDepartment.classList.remove('active');
         dashboardView.classList.add('hidden');
         settingsView.classList.remove('hidden');
+        if (window.innerWidth <= 768) sidebar.classList.remove('open');
     });
 
     taskForm.addEventListener('submit', handleTaskSubmit);

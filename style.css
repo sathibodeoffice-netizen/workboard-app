@@ -89,10 +89,11 @@ body::after {
 }
 
 .dashboard-container {
-    display: grid;
-    grid-template-columns: 260px 1fr; /* Slightly narrower sidebar */
+    display: flex;
     height: 100vh;
     background: transparent;
+    position: relative;
+    overflow: hidden;
 }
 
 /* Sidebar */
@@ -105,7 +106,10 @@ body::after {
     display: flex;
     flex-direction: column;
     gap: 2rem;
-    z-index: 10;
+    z-index: 20;
+    width: 260px;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
 }
 
 .logo {
@@ -226,6 +230,8 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     overflow-y: auto;
     position: relative;
     z-index: 5;
+    flex: 1;
+    min-width: 0;
 }
 
 .main-header {
@@ -771,4 +777,73 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 .color-picker::-moz-color-swatch {
     border-radius: 50%;
     border: 2px solid rgba(255,255,255,0.2);
+}
+
+/* Mobile Menu Button */
+.mobile-menu-btn {
+    display: none;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.8rem;
+    cursor: pointer;
+    padding: 0;
+}
+
+/* Responsive Media Queries */
+@media (max-width: 768px) {
+    .mobile-menu-btn {
+        display: block;
+    }
+
+    .sidebar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        transform: translateX(-100%);
+        box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        padding: 1.5rem;
+    }
+    
+    .main-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .header-actions {
+        flex-wrap: wrap;
+    }
+    
+    .header-actions button {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
+
+    .form-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .form-row select, .form-row input[type="date"], .form-row input[type="datetime-local"] {
+        flex: 1 1 auto;
+    }
+
+    .btn-primary {
+        width: 100%;
+    }
+
+    .kanban-board {
+        flex-direction: column;
+    }
+
+    .kanban-column {
+        min-width: 100%;
+    }
 }
