@@ -828,7 +828,10 @@ function DashboardContent() {
             </div>
             
             <div className="form-row" style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-              <input type="color" className="color-picker" value={taskColor} onChange={(e) => setTaskColor(e.target.value)} title="Choose Task Color" style={{ height: "45px", width: "45px", padding: "0", border: "none", borderRadius: "8px", background: "transparent", cursor: "pointer" }} />
+              <div style={{ flex: "1 1 140px", minWidth: "140px", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 0.8rem", borderRadius: "8px", border: "1px solid var(--border-glass)", background: "var(--bg-input)" }}>
+                <label htmlFor="taskColorPicker" style={{ fontSize: "0.95rem", color: "var(--text-secondary)", cursor: "pointer" }}>Task Color</label>
+                <input id="taskColorPicker" type="color" className="color-picker" value={taskColor} onChange={(e) => setTaskColor(e.target.value)} title="Choose Task Color" style={{ height: "35px", width: "35px", padding: "0", border: "none", background: "transparent", cursor: "pointer" }} />
+              </div>
               <input
                 type={deadlineInputType}
                 placeholder="Deadline (optional)"
