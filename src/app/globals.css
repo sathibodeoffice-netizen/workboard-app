@@ -1181,6 +1181,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 
     .main-content {
         padding: 1.5rem;
+        overflow-x: hidden;
     }
     
     .main-header h1 {
@@ -1210,10 +1211,22 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     }
 
     .kanban-board {
-        flex-direction: column;
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        padding-bottom: 1rem;
+        gap: 1rem;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .kanban-board::-webkit-scrollbar {
+        height: 4px;
     }
 
     .kanban-column {
-        min-width: 100%;
+        min-width: 85vw;
+        scroll-snap-align: center;
+        flex-shrink: 0;
     }
 }
