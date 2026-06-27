@@ -731,7 +731,7 @@ function DashboardContent() {
                       <button className="btn-secondary" onClick={() => setIsProjectModalOpen(true)}>New Project</button>
                     </>
                   )}
-                  <button className="btn-primary" style={{ padding: "0.6rem 1.2rem", fontSize: "0.95rem" }} onClick={() => setIsTaskModalOpen(true)}>+ New Task</button>
+                  <button className="btn-primary" style={{ padding: "0.6rem 1.2rem", fontSize: "0.95rem" }} onClick={() => setIsTaskModalOpen(true)}>+ Add Task</button>
                 </div>
               </div>
               <p>{currentMode === "personal" ? "Manage your private tasks efficiently." : "Shared tasks for the department."}</p>
