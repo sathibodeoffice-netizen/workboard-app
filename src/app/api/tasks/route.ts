@@ -3,6 +3,7 @@ import dbConnect from '@/lib/mongodb';
 import Task from '@/models/Task';
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 export async function GET(req: Request) {
   try {
