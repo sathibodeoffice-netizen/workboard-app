@@ -53,6 +53,7 @@ function DashboardContent() {
   const [filterAssignee, setFilterAssignee] = useState("all");
   const [filterPeriod, setFilterPeriod] = useState("all");
   const [filterDate, setFilterDate] = useState("");
+  const [sortOption, setSortOption] = useState("date_desc");
 
   // Modals
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
@@ -520,6 +521,13 @@ function DashboardContent() {
       || (filterPeriod === "Custom" && (!filterDate || task.period === filterDate))
       || task.period === filterPeriod;
     return matchAssignee && matchPeriod;
+  }).sort((a, b) => {
+    if (sortOption === "alpha_asc") return a.title.localeCompare(b.title);
+    if (sortOption === "alpha_desc") return b.title.localeCompare(a.title);
+    const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    if (sortOption === "date_asc") return timeA - timeB;
+    return timeB - timeA; // date_desc is default
   });
 
   const renderTaskList = (status: string) => {
@@ -674,6 +682,15 @@ function DashboardContent() {
             {filterPeriod === "Custom" && (
               <input type="date" className="date-filter" style={{ marginTop: "0.5rem" }} value={filterDate} onChange={(e) => setFilterDate(e.target.value)} />
             )}
+          </div>
+          <div className="filter-group">
+            <label htmlFor="sortOption">Sort By</label>
+            <select id="sortOption" value={sortOption} onChange={(e) => setSortOption(e.target.value)}>
+              <option value="date_desc">Newest First</option>
+              <option value="date_asc">Oldest First</option>
+              <option value="alpha_asc">Alphabetical (A-Z)</option>
+              <option value="alpha_desc">Alphabetical (Z-A)</option>
+            </select>
           </div>
         </div>
       </aside>
