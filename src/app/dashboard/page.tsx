@@ -56,6 +56,10 @@ function DashboardContent() {
   const [sortOption, setSortOption] = useState("date_desc");
   const [theme, setTheme] = useState("theme-midnight");
 
+  // User Profile
+  const [userName, setUserName] = useState("User");
+  const [userAvatar, setUserAvatar] = useState("");
+
   // Modals
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [deptNameInput, setDeptNameInput] = useState("");
@@ -128,6 +132,23 @@ function DashboardContent() {
       Notification.requestPermission().catch((e) => console.log("Notification permission dismissed:", e));
     }
   }, [router, searchParams]);
+
+  useEffect(() => {
+    if (!uid) return;
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch(`/api/user?uid=${uid}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            if (data.name) setUserName(data.name);
+            if (data.avatar) setUserAvatar(data.avatar);
+          }
+        }
+      } catch(e) { console.error("Error fetching profile:", e); }
+    };
+    fetchProfile();
+  }, [uid]);
 
   const fetchTasks = useCallback(async () => {
     if (!uid) return;
@@ -659,6 +680,20 @@ function DashboardContent() {
           <h2>Work Board</h2>
         </div>
         
+        <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '0.5rem', marginBottom: '1.5rem', padding: '10px', background: 'var(--bg-input)', borderRadius: '10px', border: '1px solid var(--border-glass)' }}>
+          {userAvatar ? (
+            <img src={userAvatar} alt="Profile" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
+          ) : (
+            <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 'bold' }}>
+              {userName.charAt(0).toUpperCase()}
+            </div>
+          )}
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontWeight: 'bold' }}>{userName}</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--priority-low)' }}>● Online</span>
+          </div>
+        </div>
+
         <nav className="nav-menu">
           <div className={`nav-item ${currentMode === "personal" && activeView !== "settings" ? "active" : ""}`} onClick={() => handleNavClick("personal")}>
             <span style={{ fontSize: "1.2rem" }}>👤</span> Personal Board
@@ -782,6 +817,35 @@ function DashboardContent() {
               <p style={{ color: "var(--text-secondary)" }}>Manage your account and preferences.</p>
             </header>
             
+            <section className="task-form-section" style={{ maxWidth: "500px", marginBottom: "2rem" }}>
+              <h3 style={{ marginBottom: "1rem" }}>👤 User Profile</h3>
+              <p style={{ color: "var(--text-secondary)", marginBottom: "1rem" }}>Set your name and profile picture URL.</p>
+              
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem", padding: "15px", background: "var(--bg-input)", border: "1px solid var(--border-glass)", borderRadius: "8px" }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Display Name</label>
+                  <input type="text" placeholder="Your Name" value={userName} onChange={(e) => setUserName(e.target.value)} style={{ width: '100%', padding: "0.8rem", borderRadius: "8px", border: "1px solid var(--border-glass)", background: "var(--bg-base)", color: "var(--text-primary)" }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Avatar URL</label>
+                  <input type="url" placeholder="https://..." value={userAvatar} onChange={(e) => setUserAvatar(e.target.value)} style={{ width: '100%', padding: "0.8rem", borderRadius: "8px", border: "1px solid var(--border-glass)", background: "var(--bg-base)", color: "var(--text-primary)" }} />
+                </div>
+                <button className="btn-primary" style={{ marginTop: '0.5rem' }} onClick={async () => {
+                  try {
+                    const res = await fetch('/api/user', {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ uid, name: userName, avatar: userAvatar })
+                    });
+                    if (res.ok) alert("Profile updated successfully!");
+                    else alert("Failed to update profile.");
+                  } catch (e) {
+                    alert("Error updating profile.");
+                  }
+                }}>Save Profile</button>
+              </div>
+            </section>
+
             <section className="task-form-section" style={{ maxWidth: "500px", marginBottom: "2rem" }}>
               <h3 style={{ marginBottom: "1rem" }}>🤖 Butler Automations</h3>
               <p style={{ color: "var(--text-secondary)", marginBottom: "1rem" }}>Automate repetitive actions when you move tasks to the Done column.</p>
