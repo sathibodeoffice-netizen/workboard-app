@@ -246,6 +246,7 @@ function DashboardContent() {
       status: "todo",
       subtasks: [],
       attachments: [],
+      createdAt: new Date().toISOString(),
     };
 
     try {
@@ -608,6 +609,12 @@ function DashboardContent() {
             <span>📅 {task.period}</span>
             {task.mode === "team" && <span>👤 {task.assignee}</span>}
           </div>
+
+          {task.createdAt && (
+            <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", opacity: 0.7, marginTop: "0.5rem" }}>
+              🕒 Created: {new Date(task.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+            </div>
+          )}
 
           <div className="task-actions">
             <button className="btn-delete" onClick={() => deleteTask(task._id)}>🗑️</button>
