@@ -128,10 +128,12 @@ function DashboardContent() {
 
     try {
       const resPersonal = await fetch(`/api/tasks?uid=${uid}&mode=personal`);
-      const personal = await resPersonal.json();
+      const personalData = await resPersonal.json();
+      const personal = Array.isArray(personalData) ? personalData : (personalData.tasks || []);
 
       const resTeam = await fetch(`/api/tasks?department=${encodeURIComponent(customDepartmentName)}&mode=team`);
-      const team = await resTeam.json();
+      const teamData = await resTeam.json();
+      const team = Array.isArray(teamData) ? teamData : (teamData.tasks || []);
 
       const uniqueAssignees = new Set(assignees);
       team.forEach((task: Task) => {
@@ -143,7 +145,7 @@ function DashboardContent() {
         localStorage.setItem("assignees", JSON.stringify(updatedAssignees));
       }
 
-      setTasks({ personal: personal || [], team: team || [] });
+      setTasks({ personal, team });
     } catch (e) {
       console.error("Error fetching tasks:", e);
     }

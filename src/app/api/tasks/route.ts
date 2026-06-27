@@ -6,16 +6,24 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const uid = searchParams.get('uid');
-    
-    if (!uid) {
-      return NextResponse.json({ success: false, message: 'User ID is required' }, { status: 400 });
-    }
+    const mode = searchParams.get('mode');
+    const department = searchParams.get('department');
     
     const { db } = await dbConnect();
     const tasksCollection = db.collection('tasks');
-    const tasks = await tasksCollection.find({ userId: uid }).toArray();
     
-    return NextResponse.json({ success: true, tasks });
+    let tasks = [];
+    if (mode === 'team') {
+      tasks = await tasksCollection.find({ department: department, mode: 'team' }).toArray();
+    } else {
+      if (!uid) {
+        return NextResponse.json({ success: false, message: 'User ID is required for personal tasks' }, { status: 400 });
+      }
+      tasks = await tasksCollection.find({ uid: uid, mode: 'personal' }).toArray();
+    }
+    
+    // Return array directly to match frontend expectations
+    return NextResponse.json(tasks);
   } catch (error: any) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
