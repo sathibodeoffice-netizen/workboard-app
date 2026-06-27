@@ -273,7 +273,7 @@ function DashboardContent() {
   };
 
   const deleteTask = async (taskId: string) => {
-    if (!window.confirm("Are you sure you want to delete this task?")) return;
+    if (!window.confirm("Confirm delete?")) return;
     try {
       await fetch(`/api/tasks?id=${taskId}`, { method: "DELETE" });
       fetchTasks();
