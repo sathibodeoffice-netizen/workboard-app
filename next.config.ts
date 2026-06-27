@@ -4,9 +4,9 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  serverExternalPackages: ["mongoose"],
+  serverExternalPackages: ["mongodb"],
   webpack: (config) => {
-    config.externals = [...(config.externals || []), "mongoose"];
+    config.externals = [...(config.externals || []), "mongodb"];
     return config;
   },
 };
