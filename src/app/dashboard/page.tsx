@@ -194,6 +194,7 @@ function DashboardContent() {
       }
     };
 
+    checkDeadlines(); // Run immediately so we don't wait a minute
     const deadlineInterval = setInterval(checkDeadlines, 60000);
     return () => clearInterval(deadlineInterval);
   }, [tasks, notifiedTasks]);
