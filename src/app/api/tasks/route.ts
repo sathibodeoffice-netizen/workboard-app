@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
-import Task from '@/models/Task';
+import { ObjectId } from 'mongodb';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function GET(req: Request) {
   try {
-    await dbConnect();
+    const { db } = await dbConnect();
+    const tasksCollection = db.collection('tasks');
     const { searchParams } = new URL(req.url);
     const uid = searchParams.get('uid');
     const mode = searchParams.get('mode');
@@ -21,8 +22,13 @@ export async function GET(req: Request) {
       if (department) query.department = department;
     }
 
-    const tasks = await Task.find(query);
-    return NextResponse.json(tasks, { status: 200 });
+    const tasks = await tasksCollection.find(query).toArray();
+    // Transform _id to string for the frontend
+    const formattedTasks = tasks.map((task: any) => ({
+      ...task,
+      _id: task._id.toString()
+    }));
+    return NextResponse.json(formattedTasks, { status: 200 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -30,10 +36,11 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    await dbConnect();
+    const { db } = await dbConnect();
+    const tasksCollection = db.collection('tasks');
     const data = await req.json();
-    const newTask = await Task.create(data);
-    return NextResponse.json({ success: true, id: newTask._id.toString() }, { status: 201 });
+    const result = await tasksCollection.insertOne(data);
+    return NextResponse.json({ success: true, id: result.insertedId.toString() }, { status: 201 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -41,19 +48,27 @@ export async function POST(req: Request) {
 
 export async function PATCH(req: Request) {
   try {
-    await dbConnect();
+    const { db } = await dbConnect();
+    const tasksCollection = db.collection('tasks');
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
     const department = searchParams.get('department');
     const updateData = await req.json();
 
+    // Remove _id from updateData if present to avoid modifying immutable field
+    delete updateData._id;
+
     if (id) {
-      const updatedTask = await Task.findByIdAndUpdate(id, updateData, { new: true });
-      if (!updatedTask) return NextResponse.json({ error: 'Task not found' }, { status: 404 });
-      return NextResponse.json({ success: true, task: updatedTask }, { status: 200 });
+      const result = await tasksCollection.findOneAndUpdate(
+        { _id: new ObjectId(id) },
+        { $set: updateData },
+        { returnDocument: 'after' }
+      );
+      if (!result) return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+      return NextResponse.json({ success: true, task: { ...result, _id: result._id.toString() } }, { status: 200 });
     } else if (department) {
       if (updateData.newDepartment) {
-        await Task.updateMany({ department }, { department: updateData.newDepartment });
+        await tasksCollection.updateMany({ department }, { $set: { department: updateData.newDepartment } });
         return NextResponse.json({ success: true }, { status: 200 });
       }
       return NextResponse.json({ error: 'Missing newDepartment' }, { status: 400 });
@@ -67,16 +82,17 @@ export async function PATCH(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
-    await dbConnect();
+    const { db } = await dbConnect();
+    const tasksCollection = db.collection('tasks');
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
     const department = searchParams.get('department');
 
     if (id) {
-      await Task.findByIdAndDelete(id);
+      await tasksCollection.deleteOne({ _id: new ObjectId(id) });
       return NextResponse.json({ success: true }, { status: 200 });
     } else if (department) {
-      await Task.deleteMany({ department });
+      await tasksCollection.deleteMany({ department });
       return NextResponse.json({ success: true }, { status: 200 });
     }
     
@@ -85,3 +101,4 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
