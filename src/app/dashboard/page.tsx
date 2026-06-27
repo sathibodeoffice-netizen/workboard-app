@@ -827,8 +827,18 @@ function DashboardContent() {
                   <input type="text" placeholder="Your Name" value={userName} onChange={(e) => setUserName(e.target.value)} style={{ width: '100%', padding: "0.8rem", borderRadius: "8px", border: "1px solid var(--border-glass)", background: "var(--bg-base)", color: "var(--text-primary)" }} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Avatar URL</label>
-                  <input type="url" placeholder="https://..." value={userAvatar} onChange={(e) => setUserAvatar(e.target.value)} style={{ width: '100%', padding: "0.8rem", borderRadius: "8px", border: "1px solid var(--border-glass)", background: "var(--bg-base)", color: "var(--text-primary)" }} />
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Profile Picture</label>
+                  <input type="file" accept="image/*" onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setUserAvatar(reader.result as string);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }} style={{ width: '100%', padding: "0.8rem", borderRadius: "8px", border: "1px solid var(--border-glass)", background: "var(--bg-base)", color: "var(--text-primary)" }} />
+                  {userAvatar && <div style={{ marginTop: '0.5rem' }}><img src={userAvatar} alt="Preview" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} /></div>}
                 </div>
                 <button className="btn-primary" style={{ marginTop: '0.5rem' }} onClick={async () => {
                   try {
