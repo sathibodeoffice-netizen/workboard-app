@@ -100,3 +100,45 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
 }
+
+export async function PATCH(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    let id = searchParams.get('id');
+    const department = searchParams.get('department');
+    const body = await req.json();
+    
+    const { db } = await dbConnect();
+    const tasksCollection = db.collection('tasks');
+
+    if (department && body.newDepartment) {
+      await tasksCollection.updateMany(
+        { department },
+        { $set: { department: body.newDepartment } }
+      );
+      return NextResponse.json({ success: true });
+    }
+
+    if (!id && body._id) {
+      id = body._id;
+      delete body._id;
+    }
+    
+    if (!id) {
+      return NextResponse.json({ success: false, message: 'Task ID is required' }, { status: 400 });
+    }
+    
+    const result = await tasksCollection.updateOne(
+      { _id: new ObjectId(id as string) },
+      { $set: body }
+    );
+    
+    if (result.matchedCount === 0) {
+      return NextResponse.json({ success: false, message: 'Task not found' }, { status: 404 });
+    }
+    
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  }
+}
