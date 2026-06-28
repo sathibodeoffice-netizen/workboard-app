@@ -802,6 +802,22 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     transform: scale(0.98);
 }
 
+.mobile-move-select {
+    display: none;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    border: 1px solid var(--border-glass);
+    border-radius: 6px;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.8rem;
+    outline: none;
+}
+
+.mobile-move-select option {
+    background: var(--bg-base);
+    color: var(--text-primary);
+}
+
 .task-card:hover {
     transform: translateY(-6px);
     box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.6);
@@ -1230,5 +1246,9 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
         min-width: 85vw;
         scroll-snap-align: center;
         flex-shrink: 0;
+    }
+
+    .mobile-move-select {
+        display: block;
     }
 }

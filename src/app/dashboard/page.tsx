@@ -674,7 +674,23 @@ function DashboardContent() {
             </div>
           )}
 
-          <div className="task-actions">
+          <div className="task-actions" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <select
+              className="mobile-move-select"
+              value={status}
+              onChange={(e) => {
+                const dummyEvent = {
+                  preventDefault: () => {},
+                  currentTarget: { classList: { remove: () => {} } },
+                  dataTransfer: { getData: () => task._id }
+                } as unknown as React.DragEvent;
+                handleDrop(dummyEvent, e.target.value);
+              }}
+            >
+              <option value="todo">To-Do</option>
+              <option value="in_progress">In Progress</option>
+              <option value="done">Done</option>
+            </select>
             <button className="btn-delete" onClick={() => deleteTask(task._id)}>🗑️</button>
           </div>
         </div>
