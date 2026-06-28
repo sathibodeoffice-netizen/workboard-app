@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { polyfill } from "mobile-drag-drop";
+import "mobile-drag-drop/default.css";
 
 interface Task {
   _id: string;
@@ -91,6 +93,12 @@ function DashboardContent() {
   const [notifiedTasks, setNotifiedTasks] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    // Enable mobile drag and drop polyfill with hold-to-drag
+    polyfill({
+      dragImageTranslateOverride: "scrollBehavior",
+      holdToDrag: 300 // 300ms long press to drag on mobile so scrolling works
+    });
+
     // Authentication Check
     const storedUid = sessionStorage.getItem("uid") || localStorage.getItem("uid");
     const isAuthenticated = sessionStorage.getItem("isAuthenticated") || localStorage.getItem("isAuthenticated");
