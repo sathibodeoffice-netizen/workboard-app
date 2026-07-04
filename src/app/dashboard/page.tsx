@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { polyfill } from "mobile-drag-drop";
 import "mobile-drag-drop/default.css";
+import { motion, AnimatePresence } from "framer-motion";
+import confetti from "canvas-confetti";
 
 interface Task {
   _id: string;
@@ -316,11 +318,20 @@ function DashboardContent() {
 
   const deleteTask = async (taskId: string) => {
     if (!window.confirm("Confirm delete?")) return;
+    
+    // Optimistic UI update for smooth exit animation
+    setTasks(prev => {
+      const newTasks = { ...prev };
+      newTasks[currentMode] = newTasks[currentMode].filter(t => t._id !== taskId);
+      return newTasks;
+    });
+
     try {
       await fetch(`/api/tasks?id=${taskId}`, { method: "DELETE" });
       fetchTasks();
     } catch (e) {
       console.error("Error deleting document: ", e);
+      // Optional: Revert optimistic update here if needed
     }
   };
 
@@ -355,6 +366,12 @@ function DashboardContent() {
     });
 
     if (newStatus === "done") {
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+
       if (butlerAutoDelete) {
         deleteTask(taskId);
         return;
@@ -583,30 +600,37 @@ function DashboardContent() {
       );
     }
 
-    return statusTasks.map(task => {
-      let deadlineClass = "";
-      if (task.deadline && status !== "done") {
-        const timeDiff = new Date(task.deadline).getTime() - new Date().getTime();
-        if (timeDiff <= 0) deadlineClass = "overdue";
-        else if (timeDiff <= 3600000) deadlineClass = "approaching";
-      }
+    return (
+      <AnimatePresence>
+        {statusTasks.map(task => {
+          let deadlineClass = "";
+          if (task.deadline && status !== "done") {
+            const timeDiff = new Date(task.deadline).getTime() - new Date().getTime();
+            if (timeDiff <= 0) deadlineClass = "overdue";
+            else if (timeDiff <= 3600000) deadlineClass = "approaching";
+          }
 
-      const priorityColor = 
-        task.priority === "High" ? "#ef4444" : 
-        task.priority === "Medium" ? "#f59e0b" : 
-        task.priority === "Low" ? "#10b981" : "rgba(255, 255, 255, 0.12)";
+          const priorityColor = 
+            task.priority === "High" ? "#ef4444" : 
+            task.priority === "Medium" ? "#f59e0b" : 
+            task.priority === "Low" ? "#10b981" : "rgba(255, 255, 255, 0.12)";
 
-      return (
-        <div
-          key={task._id}
-          className={`task-card ${deadlineClass}`}
-          draggable
-          onDragStart={(e) => handleDragStart(e, task._id)}
-          style={{ 
-            borderTop: task.color ? `4px solid ${task.color}` : "",
-            borderLeft: task.priority ? `4px solid ${priorityColor}` : ""
-          }}
-        >
+          return (
+            <motion.div
+              layout
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.2 } }}
+              transition={{ duration: 0.2 }}
+              key={task._id}
+              className={`task-card ${deadlineClass}`}
+              draggable
+              onDragStart={(e) => handleDragStart(e as unknown as React.DragEvent, task._id)}
+              style={{ 
+                borderTop: task.color ? `4px solid ${task.color}` : "",
+                borderLeft: task.priority ? `4px solid ${priorityColor}` : ""
+              }}
+            >
           <div className="task-header">
             <h3 className="task-title">{task.title}</h3>
             {task.priority && (
@@ -692,10 +716,11 @@ function DashboardContent() {
               <option value="done">Done</option>
             </select>
             <button className="btn-delete" onClick={() => deleteTask(task._id)}>🗑️</button>
-          </div>
-        </div>
-      );
-    });
+          </motion.div>
+        );
+      })}
+      </AnimatePresence>
+    );
   };
 
   return (

@@ -12,6 +12,8 @@
     "@capacitor/android": "^8.4.1",
     "@capacitor/cli": "^8.4.1",
     "@capacitor/core": "^8.4.1",
+    "canvas-confetti": "^1.9.4",
+    "framer-motion": "^12.42.2",
     "mobile-drag-drop": "^3.0.0-rc.0",
     "mongodb": "^6.21.0",
     "next": "16.2.9",
@@ -20,6 +22,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
