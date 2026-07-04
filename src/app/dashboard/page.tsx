@@ -716,10 +716,11 @@ function DashboardContent() {
               <option value="done">Done</option>
             </select>
             <button className="btn-delete" onClick={() => deleteTask(task._id)}>🗑️</button>
-          </motion.div>
-        );
-      })}
-      </AnimatePresence>
+          </div>
+        </motion.div>
+      );
+    })}
+    </AnimatePresence>
     );
   };
 
