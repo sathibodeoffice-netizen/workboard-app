@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { polyfill } from "mobile-drag-drop";
 import "mobile-drag-drop/default.css";
 import { motion, AnimatePresence } from "framer-motion";
-import confetti from "canvas-confetti";
 
 interface Task {
   _id: string;
@@ -358,18 +357,22 @@ function DashboardContent() {
     // Optimistic UI update
     setTasks(prev => {
       const newTasks = { ...prev };
+      newTasks[currentMode] = [...prev[currentMode]]; // create new array reference
       const taskIndex = newTasks[currentMode].findIndex(t => t._id === taskId);
       if (taskIndex !== -1) {
-        newTasks[currentMode][taskIndex].status = newStatus;
+        newTasks[currentMode][taskIndex] = { ...newTasks[currentMode][taskIndex], status: newStatus };
       }
       return newTasks;
     });
 
     if (newStatus === "done") {
-      confetti({
-        particleCount: 150,
-        spread: 70,
-        origin: { y: 0.6 }
+      import("canvas-confetti").then((module) => {
+        const confetti = module.default;
+        confetti({
+          particleCount: 150,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
       });
 
       if (butlerAutoDelete) {
