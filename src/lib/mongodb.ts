@@ -14,9 +14,22 @@ export default async function dbConnect() {
     return { client: cachedClient, db: cachedDb };
   }
 
-  const client = new MongoClient(MONGODB_URI);
+  const client = new MongoClient(MONGODB_URI, {
+    serverSelectionTimeoutMS: 8000,
+  });
 
-  await client.connect();
+  try {
+    await client.connect();
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    if (errorMsg.includes('querySrv') || errorMsg.includes('ENOTFOUND') || errorMsg.includes('ECONNREFUSED')) {
+      throw new Error(
+        'MongoDB Atlas ক্লাস্টারটি বন্ধ (Paused) আছে অথবা ক্লাস্টার লিঙ্ক পরিবর্তিত হয়েছে। দয়া করে cloud.mongodb.com-এ গিয়ে ক্লাস্টারটি "Resume" করুন।'
+      );
+    }
+    throw err;
+  }
+
   const db = client.db('workboard');
 
   cachedClient = client;
