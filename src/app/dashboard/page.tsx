@@ -6,6 +6,21 @@ import { polyfill } from "mobile-drag-drop";
 import "mobile-drag-drop/default.css";
 import { motion, AnimatePresence } from "framer-motion";
 
+/**
+ * authFetch — সব API request-এ Bearer token header স্বয়ংক্রিয়ভাবে যোগ করে।
+ * Web browser-এ cookie কাজ করে, Capacitor mobile-এ Bearer token কাজ করে।
+ */
+function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('wb_token') : null;
+  const headers: Record<string, string> = {
+    ...(options.headers as Record<string, string> || {}),
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return fetch(url, { ...options, headers, credentials: 'include' });
+}
+
 interface Task {
   _id: string;
   title: string;
@@ -96,57 +111,72 @@ function DashboardContent() {
   useEffect(() => {
     // Enable mobile drag and drop polyfill with hold-to-drag
     polyfill({
-      dragImageTranslateOverride: "scrollBehavior",
       holdToDrag: 300 // 300ms long press to drag on mobile so scrolling works
     });
 
-    // Authentication Check
-    const storedUid = sessionStorage.getItem("uid") || localStorage.getItem("uid");
-    const isAuthenticated = sessionStorage.getItem("isAuthenticated") || localStorage.getItem("isAuthenticated");
+    // Server-side session যাচাই করি
+    const checkAuth = async () => {
+      try {
+        const res = await authFetch('/api/auth/check', { cache: 'no-store' });
+        if (!res.ok) {
+          router.push("/");
+          return;
+        }
+        const data = await res.json();
+        const storedUid = data.uid || localStorage.getItem("uid");
+        if (!storedUid) {
+          router.push("/");
+          return;
+        }
+        setUid(storedUid);
+        // uid sync করে রাখি
+        localStorage.setItem("uid", storedUid);
 
-    if (!isAuthenticated || !storedUid) {
-      router.push("/");
-      return;
-    }
-    setUid(storedUid);
+        // Initial setups
+        const savedTheme = localStorage.getItem("theme");
+        if (savedTheme) {
+          setTheme(savedTheme);
+        }
+        const deptFromUrl = searchParams.get("dept");
+        if (deptFromUrl) {
+          localStorage.setItem("customDepartmentName", deptFromUrl);
+          setCurrentMode("team");
+          setCustomDepartmentName(deptFromUrl);
+        } else {
+          const localDept = localStorage.getItem("customDepartmentName");
+          if (localDept) setCustomDepartmentName(localDept);
+        }
 
-    // Initial setups
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
-    const deptFromUrl = searchParams.get("dept");
-    if (deptFromUrl) {
-      localStorage.setItem("customDepartmentName", deptFromUrl);
-      setCurrentMode("team");
-      setCustomDepartmentName(deptFromUrl);
-    } else {
-      const localDept = localStorage.getItem("customDepartmentName");
-      if (localDept) setCustomDepartmentName(localDept);
-    }
+        let localAssignees = JSON.parse(localStorage.getItem("assignees") || "[]");
+        if (!localStorage.getItem("defaultsCleared")) {
+          localAssignees = localAssignees.filter((name: string) => !["Alice", "Bob", "Charlie"].includes(name));
+          localStorage.setItem("assignees", JSON.stringify(localAssignees));
+          localStorage.setItem("defaultsCleared", "true");
+        }
+        setAssignees(localAssignees);
 
-    let localAssignees = JSON.parse(localStorage.getItem("assignees") || "[]");
-    if (!localStorage.getItem("defaultsCleared")) {
-      localAssignees = localAssignees.filter((name: string) => !["Alice", "Bob", "Charlie"].includes(name));
-      localStorage.setItem("assignees", JSON.stringify(localAssignees));
-      localStorage.setItem("defaultsCleared", "true");
-    }
-    setAssignees(localAssignees);
+        setButlerAutoDelete(localStorage.getItem("butlerAutoDelete") === "true");
+        setButlerAutoDate(localStorage.getItem("butlerAutoDate") === "true");
+        setNotifiedTasks(JSON.parse(localStorage.getItem("notifiedTasks") || "{}"));
 
-    setButlerAutoDelete(localStorage.getItem("butlerAutoDelete") === "true");
-    setButlerAutoDate(localStorage.getItem("butlerAutoDate") === "true");
-    setNotifiedTasks(JSON.parse(localStorage.getItem("notifiedTasks") || "{}"));
+        if (typeof window !== "undefined" && "Notification" in window) {
+          Notification.requestPermission().catch((e) => console.log("Notification permission dismissed:", e));
+        }
+      } catch {
+        router.push("/");
+      }
+    };
 
-    if (typeof window !== "undefined" && "Notification" in window) {
-      Notification.requestPermission().catch((e) => console.log("Notification permission dismissed:", e));
-    }
+    checkAuth();
   }, [router, searchParams]);
 
+
   useEffect(() => {
-    if (!uid) return;
+    const currentUid = uid || (typeof window !== 'undefined' ? localStorage.getItem("uid") : null);
+    if (!currentUid) return;
     const fetchProfile = async () => {
       try {
-        const res = await fetch(`/api/user?uid=${uid}`);
+        const res = await authFetch(`/api/user?uid=${currentUid}`);
         if (res.ok) {
           const data = await res.json();
           if (data.success) {
@@ -160,14 +190,15 @@ function DashboardContent() {
   }, [uid]);
 
   const fetchTasks = useCallback(async () => {
-    if (!uid) return;
+    const currentUid = uid || (typeof window !== 'undefined' ? localStorage.getItem("uid") : null);
+    if (!currentUid) return;
 
     try {
-      const resPersonal = await fetch(`/api/tasks?uid=${uid}&mode=personal`, { cache: 'no-store' });
+      const resPersonal = await authFetch(`/api/tasks?uid=${currentUid}&mode=personal`, { cache: 'no-store' });
       const personalData = await resPersonal.json();
       const personal = Array.isArray(personalData) ? personalData : (personalData.tasks || []);
 
-      const resTeam = await fetch(`/api/tasks?department=${encodeURIComponent(customDepartmentName)}&mode=team`, { cache: 'no-store' });
+      const resTeam = await authFetch(`/api/tasks?department=${encodeURIComponent(customDepartmentName)}&mode=team`, { cache: 'no-store' });
       const teamData = await resTeam.json();
       const team = Array.isArray(teamData) ? teamData : (teamData.tasks || []);
 
@@ -258,13 +289,16 @@ function DashboardContent() {
     if (window.innerWidth <= 768) setIsSidebarOpen(false);
   };
 
-  const handleLogout = () => {
-    sessionStorage.clear();
-    localStorage.removeItem("isAuthenticated");
+  const handleLogout = async () => {
+    // Server-side cookie clear করি
+    await authFetch('/api/auth', { method: 'DELETE' });
+    // Local storage থেকেও সরিয়ে দিই
     localStorage.removeItem("uid");
     localStorage.removeItem("userEmail");
+    localStorage.removeItem("wb_token");
     router.push("/");
   };
+
 
   const handleTaskSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -276,6 +310,8 @@ function DashboardContent() {
       return;
     }
 
+    const currentUid = uid || (typeof window !== 'undefined' ? localStorage.getItem("uid") : null);
+
     const newTask = {
       title: taskTitle.trim(),
       description: taskDescription.trim(),
@@ -285,7 +321,7 @@ function DashboardContent() {
       period: periodValue,
       assignee: assigneeValue,
       mode: currentMode,
-      uid: uid,
+      uid: currentUid,
       department: currentMode === "team" ? customDepartmentName : "",
       status: "todo",
       subtasks: [],
@@ -294,11 +330,17 @@ function DashboardContent() {
     };
 
     try {
-      await fetch("/api/tasks", {
+      const res = await authFetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newTask),
       });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        alert("টাস্ক যুক্ত করা যায়নি: " + (errData.message || res.statusText));
+        return;
+      }
       
       setTaskTitle("");
       setTaskDescription("");
@@ -312,6 +354,7 @@ function DashboardContent() {
       fetchTasks();
     } catch (e) {
       console.error("Error adding document: ", e);
+      alert("নেটওয়ার্ক সমস্যার কারণে টাস্ক যুক্ত করা যায়নি।");
     }
   };
 
@@ -326,7 +369,7 @@ function DashboardContent() {
     });
 
     try {
-      await fetch(`/api/tasks?id=${taskId}`, { method: "DELETE" });
+      await authFetch(`/api/tasks?id=${taskId}`, { method: "DELETE" });
       fetchTasks();
     } catch (e) {
       console.error("Error deleting document: ", e);
@@ -383,7 +426,7 @@ function DashboardContent() {
         nowTime.setMinutes(nowTime.getMinutes() - nowTime.getTimezoneOffset());
         const nowStr = nowTime.toISOString().slice(0, 16);
         
-        await fetch(`/api/tasks?id=${taskId}`, {
+        await authFetch(`/api/tasks?id=${taskId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status: newStatus, deadline: nowStr }),
@@ -394,7 +437,7 @@ function DashboardContent() {
     }
 
     try {
-      await fetch(`/api/tasks?id=${taskId}`, {
+      await authFetch(`/api/tasks?id=${taskId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
@@ -414,7 +457,7 @@ function DashboardContent() {
     newSubtasks[subtaskIndex].completed = isCompleted;
 
     try {
-      await fetch(`/api/tasks?id=${taskId}`, {
+      await authFetch(`/api/tasks?id=${taskId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ subtasks: newSubtasks }),
@@ -437,7 +480,7 @@ function DashboardContent() {
       const newSubtasks = [...(task.subtasks || []), { text, completed: false }];
 
       try {
-        await fetch(`/api/tasks?id=${taskId}`, {
+        await authFetch(`/api/tasks?id=${taskId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ subtasks: newSubtasks }),
@@ -472,7 +515,7 @@ function DashboardContent() {
           const base64Data = e.target?.result as string;
           newAttachments.push({ type: "image", name: file.name, data: base64Data });
           
-          await fetch(`/api/tasks?id=${task._id}`, {
+          await authFetch(`/api/tasks?id=${task._id}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ attachments: newAttachments }),
@@ -483,7 +526,7 @@ function DashboardContent() {
         reader.readAsDataURL(file);
       } else if (linkVal) {
         newAttachments.push({ type: "link", url: linkVal });
-        await fetch(`/api/tasks?id=${task._id}`, {
+        await authFetch(`/api/tasks?id=${task._id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ attachments: newAttachments }),
@@ -532,6 +575,7 @@ function DashboardContent() {
           ];
         }
 
+        const currentUid = uid || (typeof window !== 'undefined' ? localStorage.getItem("uid") : null);
         for (const t of templateTasks) {
           const newTask = {
             title: t.title,
@@ -542,12 +586,12 @@ function DashboardContent() {
             period: "Weekly",
             assignee: "Me",
             mode: "team",
-            uid: uid,
+            uid: currentUid,
             department: newName,
             status: t.status,
             subtasks: t.subtasks || [],
           };
-          await fetch("/api/tasks", {
+          await authFetch("/api/tasks", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(newTask),
@@ -563,7 +607,7 @@ function DashboardContent() {
   const deleteProject = async () => {
     if (confirm(`Are you sure you want to delete the department "${customDepartmentName}" and ALL its tasks?`)) {
       try {
-        await fetch(`/api/tasks?department=${encodeURIComponent(customDepartmentName)}`, { method: "DELETE" });
+        await authFetch(`/api/tasks?department=${encodeURIComponent(customDepartmentName)}`, { method: "DELETE" });
         setCurrentMode("personal");
         const url = new URL(window.location.href);
         url.searchParams.delete("dept");
@@ -824,7 +868,7 @@ function DashboardContent() {
                       <button className="btn-secondary" onClick={() => {
                         const newName = prompt("Enter new name for this department:", customDepartmentName);
                         if (newName && newName.trim() !== "" && newName.trim() !== customDepartmentName) {
-                          fetch(`/api/tasks?department=${encodeURIComponent(customDepartmentName)}`, {
+                          authFetch(`/api/tasks?department=${encodeURIComponent(customDepartmentName)}`, {
                             method: "PATCH",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ newDepartment: newName.trim() }),
@@ -898,10 +942,11 @@ function DashboardContent() {
                 </div>
                 <button className="btn-primary" style={{ marginTop: '0.5rem' }} onClick={async () => {
                   try {
-                    const res = await fetch('/api/user', {
+                    const currentUid = uid || (typeof window !== 'undefined' ? localStorage.getItem("uid") : null);
+                    const res = await authFetch('/api/user', {
                       method: 'PATCH',
                       headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ uid, name: userName, avatar: userAvatar })
+                      body: JSON.stringify({ uid: currentUid, name: userName, avatar: userAvatar })
                     });
                     if (res.ok) alert("Profile updated successfully!");
                     else alert("Failed to update profile.");
@@ -998,7 +1043,7 @@ function DashboardContent() {
 
       {/* Task Modal */}
       <div className={`modal ${isTaskModalOpen ? "" : "hidden"}`}>
-        <div className="modal-content" style={{ maxWidth: "600px" }}>
+        <div className="modal-content" style={{ maxWidth: "600px", maxHeight: "90vh", overflowY: "auto" }}>
           <button className="btn-close" onClick={() => setIsTaskModalOpen(false)}>&times;</button>
           <h2>Create New Task</h2>
           <form onSubmit={handleTaskSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>

@@ -9,13 +9,35 @@ export default function Home() {
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [rememberMe, setRememberMe] = useState(false);
 
+  // Server-side session আছে কিনা check করি
   useEffect(() => {
-    if (typeof window !== "undefined" && (sessionStorage.getItem("isAuthenticated") || localStorage.getItem("isAuthenticated"))) {
-      router.push("/dashboard");
-    }
+    const checkAuth = async () => {
+      try {
+        const token = localStorage.getItem("wb_token");
+        const headers: HeadersInit = { 'Content-Type': 'application/json' };
+        // Mobile Capacitor: Bearer token header দিয়ে auth check
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const res = await fetch('/api/auth/check', {
+          cache: 'no-store',
+          headers,
+        });
+
+        if (res.ok) {
+          router.replace("/dashboard");
+        } else {
+          // Token invalid হলে clear করি
+          localStorage.removeItem("wb_token");
+          setIsLoading(false);
+        }
+      } catch {
+        setIsLoading(false);
+      }
+    };
+    checkAuth();
   }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,34 +47,42 @@ export default function Home() {
     try {
       const response = await fetch("/api/auth", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password, isLogin: isLoginMode }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, isLogin: isLoginMode, rememberMe }),
       });
 
       const data = await response.json();
 
       if (data.success) {
-        if (rememberMe && isLoginMode) {
-          localStorage.setItem("isAuthenticated", "true");
-          localStorage.setItem("userEmail", email);
-          localStorage.setItem("uid", data.uid);
-        } else {
-          sessionStorage.setItem("isAuthenticated", "true");
-          sessionStorage.setItem("userEmail", email);
-          sessionStorage.setItem("uid", data.uid);
+        // uid ও token localStorage-এ রাখি
+        // token: Capacitor mobile Bearer auth এর জন্য
+        // uid: dashboard এ সহজ access এর জন্য
+        localStorage.setItem("uid", data.uid);
+        localStorage.setItem("userEmail", email);
+        if (data.token) {
+          localStorage.setItem("wb_token", data.token);
         }
         router.push("/dashboard");
       } else {
         alert("Error: " + data.message);
+        setIsLoading(false);
       }
-    } catch (error: any) {
-      alert("Network Error: " + error.message);
-    } finally {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Network error";
+      alert("Network Error: " + message);
       setIsLoading(false);
     }
   };
+
+  // Auth check চলাকালীন loading দেখাই
+  if (isLoading) {
+    return (
+      <div style={{ display: "flex", height: "100vh", alignItems: "center", justifyContent: "center" }}>
+        <div className="background-animation"></div>
+        <div style={{ color: "var(--text-primary)", fontSize: "1.2rem", opacity: 0.7 }}>Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -110,7 +140,8 @@ export default function Home() {
                 type="password"
                 id="password"
                 required
-                placeholder="Enter your password"
+                minLength={6}
+                placeholder="Enter your password (min 6 chars)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -124,7 +155,7 @@ export default function Home() {
                   onChange={(e) => setRememberMe(e.target.checked)}
                   style={{ width: "auto" }}
                 />
-                <label htmlFor="rememberMe" style={{ marginBottom: "0", fontSize: "0.9rem", cursor: "pointer" }}>Remember me</label>
+                <label htmlFor="rememberMe" style={{ marginBottom: "0", fontSize: "0.9rem", cursor: "pointer" }}>Remember me (7 days)</label>
               </div>
             )}
             <button type="submit" className="btn-get-started btn-full" disabled={isLoading}>
